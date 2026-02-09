@@ -2,7 +2,8 @@
 Browser-based Vedic divisional chart engine
 
 
-
+LIVE LINK
+https://donniedarsshan.github.io/vedic-shodash-varga-engine/
 
 ---
 
