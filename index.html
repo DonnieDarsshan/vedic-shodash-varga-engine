@@ -248,6 +248,25 @@
 		<option value="Venus">Venus</option>
 	</select>
 
+		<select id="lagnaOverride" onchange="this.dataset.manual='true';calc()">
+	
+		<option value="0">Aries</option>
+		<option value="1">Taurus</option>
+		<option value="2">Gemini</option>
+		<option value="3">Cancer</option>
+		<option value="4">Leo</option>
+		<option value="5">Virgo</option>
+		<option value="6">Libra</option>
+		<option value="7">Scorpio</option>
+		<option value="8">Sagittarius</option>
+		<option value="9">Capricorn</option>
+		<option value="10">Aquarius</option>
+		<option value="11">Pisces</option>
+	</select>
+
+
+
+
 		
 		
 		<script>
@@ -753,6 +772,14 @@ function getVSign(baseDeg, v) {
     
     let lagnaShifted = d.lagna;
 
+
+
+
+
+	
+
+
+
     if (originalDateTime && currentDateTime) {
         const diffMs = currentDateTime - originalDateTime;
         const diffMinutes = diffMs / 60000;
@@ -761,6 +788,55 @@ function getVSign(baseDeg, v) {
         while (lagnaShifted < 0) lagnaShifted += 360;
         while (lagnaShifted >= 360) lagnaShifted -= 360;
     }
+	
+	
+	
+	
+	   
+       // -------- D1 Pivot 15° Rule --------
+		let pivotBaseDeg = lagnaShifted;
+
+		if (pivot !== "ASC") {
+			pivotBaseDeg = d.planets[pivot];
+		}
+
+		let d1AdjustedSign = Math.floor(pivotBaseDeg / 30);
+		const pivotDegInSign = pivotBaseDeg % 30;
+
+		let d1ShiftForward = false;
+
+		if (pivotDegInSign >= 15) {
+			d1AdjustedSign = (d1AdjustedSign + 1) % 12;
+			d1ShiftForward = true;
+		}
+
+
+
+    const lagnaSelect = document.getElementById("lagnaOverride");
+
+	let autoSign;
+
+	// In KP mode, use pivot-based rule
+	if (modeKP) {
+		autoSign = d1AdjustedSign;
+	} else {
+		// Sign2Sign → always real lagna sign
+		autoSign = Math.floor(lagnaShifted / 30);
+	}
+
+
+
+
+	// auto-select lagna unless user manually changed it
+	if (lagnaSelect && lagnaSelect.dataset.manual !== "true") {
+		lagnaSelect.value = autoSign;
+	}
+
+	const finalLagnaSign = parseInt(lagnaSelect.value);
+
+	
+	
+	
     
     const shiftedPlanets = {};
     Object.keys(d.planets).forEach(p => {
@@ -774,6 +850,15 @@ function getVSign(baseDeg, v) {
     vList.forEach(v => {
         const chart = Array(12).fill().map(() => []);
         let lagnaDeg;
+		
+		
+		let d1OverrideSign = null;
+		if (v === 1) {
+			d1OverrideSign = finalLagnaSign;
+		}
+
+
+		
         let planetDegs = { ...shiftedPlanets };
         let pivotDeg = lagnaShifted;
 
@@ -964,14 +1049,31 @@ function getVSign(baseDeg, v) {
 				
 				// ADD ASC TO CHART - KP MODE (non-D30) (FIXED)
                 if (pivot === "ASC") {
-                    // When pivot is ASC, use the pivot sign directly
-                    chart[pSign].push({ n: "ASC", d: 0, r: false, isAsc: true });
-                } else {
-                    // When pivot is a planet, ASC moves like other planets
-                    const ascSignKP = Math.floor(lagnaDeg / 30);
-                    const ascDegKP = lagnaDeg % 30;
-                    chart[ascSignKP].push({ n: "ASC", d: ascDegKP, r: false, isAsc: true });
-                }
+
+				let ascSignKP = pSign;
+				let ascDegKP = 0;
+
+				// D1 KP lagna shift: move ASC one sign forward
+				if (v === 1 && d1ShiftForward) {
+					ascSignKP = (ascSignKP + 1) % 12;
+				}
+
+				chart[ascSignKP].push({ n: "ASC", d: ascDegKP, r: false, isAsc: true });
+
+			} else {
+
+				let ascSignKP = Math.floor(lagnaDeg / 30);
+				let ascDegKP = lagnaDeg % 30;
+
+				// D1 KP lagna shift: move ASC one sign forward
+				if (v === 1 && d1ShiftForward) {
+					ascSignKP = (ascSignKP + 1) % 12;
+					ascDegKP = 0;
+				}
+
+				chart[ascSignKP].push({ n: "ASC", d: ascDegKP, r: false, isAsc: true });
+			}
+
 				
 				
 				
@@ -1017,11 +1119,23 @@ function getVSign(baseDeg, v) {
                 lagnaDeg = targetSign * 30 + (rel / 6) * 30;
                 chart[targetSign].push({ n: "ASC", d: (rel / 6) * 30, r: false, isAsc: true });
             } else {
+			
+			
+			
                 // Standard varga ASC calculation
-                const targetSign = getVSign(lagnaShifted, v);
-                const ascDeg = (lagnaShifted * v) % 30;
-                lagnaDeg = targetSign * 30 + ascDeg;
-                chart[targetSign].push({ n: "ASC", d: ascDeg, r: false, isAsc: true });
+                let targetSign = getVSign(lagnaShifted, v);
+				let ascDeg = (lagnaShifted * v) % 30;
+
+				// In Sign2Sign, always use real lagna sign for D1
+				if (v === 1) {
+					targetSign = Math.floor(lagnaShifted / 30);
+					ascDeg = lagnaShifted % 30;
+				}
+
+				lagnaDeg = targetSign * 30 + ascDeg;
+				chart[targetSign].push({ n: "ASC", d: ascDeg, r: false, isAsc: true });
+
+
             }
         }
 
@@ -1033,7 +1147,13 @@ function getVSign(baseDeg, v) {
             if (modeKP) {
                 // KP mode planet placement
                 let house = Math.floor(deg / 30);
-                let houseDeg = deg % 30;
+				let houseDeg = deg % 30;
+
+				// D1 KP lagna shift: move all planets one sign forward
+				if (modeKP && v === 1 && d1ShiftForward) {
+					house = (house + 1) % 12;
+				}
+
 
                 // force pivot planet to 0° in its sign
                 if (pivot !== "ASC" && p === pivot) {
