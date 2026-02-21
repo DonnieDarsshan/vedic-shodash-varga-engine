@@ -22,11 +22,20 @@
         #personName { font-size: 2.2em; font-weight: bold; margin-bottom: 5px; }
         #personDetails { font-size: 1.2em; color: #ccc; }
         .controls { display: flex; gap: 15px; justify-content: center; align-items: center; margin-bottom: 40px; }
+		
+		
+		
+		
 		.chart-grid { 
-			display: grid; 
-			grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); 
-			gap: 25px; max-width: 1000px; margin: 0 auto; 
-		}
+		display: grid; 
+		grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); 
+		gap: 25px; 
+		max-width: 1500px; 
+		margin: 0 auto; 
+		width: 100%;
+		padding: 0 20px;
+		box-sizing: border-box;
+	}
 
 
 
@@ -172,9 +181,12 @@
 		/* ============================= */
 
 		.shoda-wrapper{
-			max-width:1000px;
-			margin:40px auto 0 auto;
-		}
+		max-width:1600px;
+		margin:40px auto 0 auto;
+		width:100%;
+		padding:0 20px;
+		box-sizing:border-box;
+	}
 
 		.shoda-table{
 			width:100%;
@@ -205,9 +217,57 @@
 			color:var(--asc-yellow);
 		}
 
-		.shoda-table tr:hover{
-			background:#2b1f00;
+	
+		
+		
+		/* ============================= */
+		/* MEMORY HIGHLIGHT SYSTEM      */
+		/* ============================= */
+
+		.shoda-table td,
+		.shoda-table th{
+			cursor:pointer;
+			transition:background 0.15s ease;
 		}
+
+
+
+
+
+
+
+				/* ============================= */
+				/* DARK ROYAL HIGHLIGHT COLORS  */
+				/* ============================= */
+
+				/* Deep Royal Violet (Row Highlight) */
+				.mem-row{
+					background:#2e004f !important;   /* DARK VIOLET */
+					color:#ffffff !important;
+				}
+
+				/* Deep Ruby Red (Column Highlight) */
+				.mem-col{
+					background:#5a0008 !important;   /* DARK RED */
+					color:#ffffff !important;
+				}
+
+				/* Intersection → Use Violet Priority */
+				.mem-cross{
+					background:#2e004f !important;
+					color:#ffffff !important;
+				}
+				
+				/* Single Cell Highlight */
+				.mem-cell{
+				background:#ffcc00 !important;   /* yellow */
+				color:#000000 !important;
+				border:1px solid #000000 !important;  /* force black grid line */
+			}
+				
+
+
+
 
 
 
@@ -226,17 +286,41 @@
 		margin:40px auto 0 auto;
 	}
 
-	.vim-heading{
-    text-align:center;
-    font-size:22px;
-    font-weight:bold;
-    color:var(--grid-line);
-    cursor:pointer;
-    padding:10px;
-    border:1px solid var(--grid-line);
-    background:#0a0a0a;
-    margin-bottom:15px;
-}
+		.vim-heading{
+		text-align:center;
+		font-size:22px;
+		font-weight:bold;
+		color:var(--grid-line);
+		cursor:pointer;
+		padding:10px;
+		border:1px solid var(--grid-line);
+		background:#0a0a0a;
+		margin-bottom:0;
+	}
+
+	/* ===== DATE FINDER BAR ===== */
+	.vim-find-bar{
+		background:#000;
+		border:1px solid var(--grid-line);
+		border-top:none;
+		padding:8px 12px;
+		display:flex;
+		justify-content:center;
+		align-items:center;
+		gap:12px;
+		margin-bottom:15px;
+	}
+
+	.vim-find-bar input{
+		background:#111;
+		color:#fff;
+		border:1px solid var(--grid-line);
+		padding:4px 6px;
+	}
+
+	.vim-find-bar button{
+		padding:4px 12px;
+	}
 
 
 
@@ -288,39 +372,47 @@
 		}
 
 		.vim-maha { 
-			background: #1a001a; 
-		}
-
+		background:#3b1f0f;   /* solid dark brown */
+		border-left:6px solid #8b4513;
+	}
+		
+		
 		.vim-bhukti { 
-			background: #0f172a; 
-			margin-left: 0 !important; 
-			border-left: 4px solid #3b82f6; /* Blue indicator */
-		}
+		background: linear-gradient(135deg,#1b0033,#2d0066);
+		margin-left: 0 !important; 
+		border-left: 4px solid #9d4edd;
+	}
 
 		.vim-antara { 
-			background: #021b16; 
-			margin-left: 0 !important; 
-			border-left: 8px solid #10b981; /* Green indicator */
-		}
+		background: linear-gradient(135deg,#002b24,#004d40);
+		margin-left: 0 !important; 
+		border-left: 8px solid #00f5d4;
+	}
 		
 		
-		/* ACTIVE STATES */
-		/* ACTIVE STATES */
+		/* ============================= */
+		/* ACTIVE STATES — FINAL COLORS  */
+		/* ============================= */
+
 		.vim-maha.active{
-			background:#3b0000 !important;   /* dark red */
-			border-color:#ff4d4d !important;
-		}
+		background: radial-gradient(circle at center,
+			#b30000 0%,
+			#a00000 50%,
+			#600000 100%) !important;
+		border:2px solid #ff4d4d !important;
+	}
 
 		.vim-bhukti.active{
-			background:#001a3b !important;   /* dark blue */
-			border-left:4px solid #4da6ff !important;
+			background:#2a004d !important;   /* DARK PURPLE */
+			border-left:6px solid #c084fc !important;
+			border:2px solid #c084fc !important;
 		}
 
 		.vim-antara.active{
-			background:#2a004d !important;   /* purple */
-			border-left:8px solid #c084fc !important;
+			background:#003b1f !important;   /* DARK GREEN */
+			border-left:8px solid #10b981 !important;
+			border:2px solid #10b981 !important;
 		}
-
 
 		
 		.vimSym {
@@ -356,8 +448,11 @@
 		
 		
 		.division-title{
-			max-width:1000px;
-			margin:40px auto 10px auto;
+		max-width:1500px;
+		margin:40px auto 10px auto;
+		width:100%;
+		padding:0 20px;
+		box-sizing:border-box;
 			text-align:center;
 			font-size:20px;
 			font-weight:bold;
@@ -371,7 +466,15 @@
 
 
 
+		/* ============================= */
+		/* RUNNING MAHADASHA HEADER     */
+		/* ============================= */
 
+		/* RUNNING MAHADASHA HEADER */
+		.running-maha{
+			background:#001f5c !important;   /* deep dark blue */
+			color:#ffffff !important;
+		}
 
 
 
@@ -519,7 +622,7 @@
 		<input type="checkbox" id="modeVedic" onclick="enforceSingleMode('modeVedic')"> Vedic
 		</label>
 		<label style="margin-left:6px;">
-		<input type="checkbox" id="modeKN" onchange="calc()"> KN
+		<input type="checkbox" id="modeKN"  checked onchange="calc()"> KN
 		</label>
 
 		<label style="margin-left:6px;">
@@ -536,6 +639,21 @@
 
     <div class="vim-heading" onclick="toggleVim()">
         Vimshottari Dasha ▼
+    </div>
+
+    <div class="vim-find-bar">
+        <button onclick="setTodayVimDate()">Current Date</button>
+        <span style="color:#ffcc00;font-weight:bold;">Find Date</span>
+        <input type="date" id="vimFindDate">
+        <button onclick="findVimDate()">Find</button>
+		<button onclick="collapseVim()">Collapse</button>
+		
+		
+		<select id="expandLevel" style="background:#111;color:#fff;border:1px solid var(--grid-line);padding:4px 6px;">
+		<option value="2" selected>Bukthi</option>
+		<option value="3">Antara</option>
+	</select>
+
     </div>
 
     <div id="vimContainer" class="vim-row">
@@ -559,10 +677,10 @@
 	
 
 <div class="division-title" onclick="toggleDivision()">
-    Divisional Charts ▼
+    Divisional Charts ▶
 </div>
 
-<div id="out" class="chart-grid"></div>
+<div id="out" class="chart-grid" style="display:none;"></div>
 
 
 
@@ -593,6 +711,22 @@
 	<div id="bhavaTable"></div>
 
 	<div class="shoda-title">Zodiac Divisional Table</div>
+	
+	<div id="zodiacControlBar" style="background:#003b1f;border:1px solid #10b981;padding:8px 10px;margin-bottom:8px;display:flex;gap:20px;justify-content:center;align-items:center;">
+    
+    <label style="display:flex;align-items:center;gap:6px;color:#10b981;font-weight:bold;">
+        <input type="checkbox" id="toggleSignNames" onchange="handleZodiacToggle('name')">
+        Sign Names
+    </label>
+
+    <label style="display:flex;align-items:center;gap:6px;color:#10b981;font-weight:bold;">
+        <input type="checkbox" id="toggleDignity" checked onchange="handleZodiacToggle('dignity')">
+        Planet Dignity
+    </label>
+
+</div>
+	
+	
 	<div id="rashiTable"></div>
 
 </div>
@@ -627,17 +761,20 @@
 
 
 function buildDateTime() {
+
     const d = document.getElementById('dobField').value;
     const t = document.getElementById('tobField').value;
 
     if (!d || !t) return;
 
-    if (!currentDateTime) {
-        currentDateTime = new Date(d + "T" + t);
+    // If birth not set yet → set it once
+    if (!originalDateTime) {
+        originalDateTime = new Date(d + "T" + t);
     }
 
-    if (!originalDateTime) {
-        originalDateTime = new Date(currentDateTime);
+    // If current time not set → clone birth
+    if (!currentDateTime) {
+        currentDateTime = new Date(originalDateTime);
     }
 }
 
@@ -675,22 +812,30 @@ function updateMiniClock() {
 
 
 
+
+
+
+
+
+
 function manualTimeChange() {
     const d = document.getElementById('dobField').value;
     const t = document.getElementById('tobField').value;
 
     if (!d || !t) return;
 
-    // build fresh time objects
+    // Only move current time
     currentDateTime = new Date(d + "T" + t);
-    originalDateTime = new Date(currentDateTime);
 
-    // force full redraw cycle
+    // DO NOT TOUCH originalDateTime
+    if (!originalDateTime) {
+        originalDateTime = new Date(currentDateTime);
+    }
+
     document.getElementById('out').innerHTML = '';
 
+    updateMiniClock();
     calc();
-	updateMiniClock();
-
 }
 
 
@@ -760,9 +905,10 @@ function resetTime() {
 		const t = document.getElementById('tobField').value;
 
 		if (d && t) {
-			currentDateTime = new Date(d + "T" + t);
-			originalDateTime = new Date(currentDateTime);
-		}
+		// Set birth anchor ONCE
+		originalDateTime = new Date(d + "T" + t);
+		currentDateTime  = new Date(originalDateTime);
+	}
 
 		updateMiniClock();
 		calc();
@@ -1093,7 +1239,19 @@ function getVSign(baseDeg, v) {
 		return lords[nak % 9];
 	}
 
-	moonStarLord = getStarLord(d.planets["Chandra"]);
+	let moonShifted = d.planets["Chandra"];
+
+if (originalDateTime && currentDateTime) {
+    const diffMs = currentDateTime - originalDateTime;
+    const diffMinutes = diffMs / 60000;
+    const moonShift = diffMinutes * (13.176 / (24*60)); 
+    moonShifted = d.planets["Chandra"] + moonShift;
+    while (moonShifted < 0) moonShifted += 360;
+    while (moonShifted >= 360) moonShifted -= 360;
+}
+
+moonStarLord = getStarLord(moonShifted);
+
 	lagnaStarLord = getStarLord(lagnaShifted);
 
 		
@@ -1563,6 +1721,9 @@ function getVSign(baseDeg, v) {
 		});
 	});
 
+
+
+
 	// ---------- ZODIAC TABLE (PURE SIGN2SIGN LOGIC) ----------
 	
 
@@ -1570,7 +1731,7 @@ function getVSign(baseDeg, v) {
 		const label = (p === "Surya") ? "Sy" : p.substring(0,2);
 		if(!window._shodaRashi[v][label]) return;
 
-		const rawDeg = d.planets[p];
+		const rawDeg = planetDegs[p] !== undefined ? planetDegs[p] : d.planets[p];
 		const sign = getVSign(rawDeg, v);
 
 		window._shodaRashi[v][label] = sign + 1;
@@ -1590,11 +1751,15 @@ function getVSign(baseDeg, v) {
 buildShodaTables();
 
 // Build Vimshottari
-buildFullDasha("vimChandra",d.planets["Chandra"]);
-buildFullDasha("vimLagna",lagnaShifted);
+buildFullDasha("vimChandra", moonShifted);
+buildFullDasha("vimLagna", lagnaShifted);
+// --- force stable highlight order ---
+highlightTodayVim();
+highlightRunningMahaInTable();
 
 
-setTimeout(highlightTodayVim,0);
+
+
 
 }
 
@@ -1763,6 +1928,7 @@ function updateShodaOrder(mode){
     }
 
     buildShodaTables();
+	highlightRunningMahaInTable();
 }
 
 
@@ -1771,10 +1937,292 @@ function updateShodaOrder(mode){
 
 
 
+
+
+
+
+/* ============================= */
+/* MULTI SELECT MEMORY ENGINE   */
+/* ============================= */
+
+function attachMemoryEvents(tableEl){
+
+	if(!tableEl) return;
+
+	// store active selections inside table instance
+	tableEl._activeRows = new Set();
+	tableEl._activeCols = new Set();
+
+	const rows = tableEl.querySelectorAll("tr");
+
+	rows.forEach((row,rIndex)=>{
+
+		const cells = row.querySelectorAll("th,td");
+
+		cells.forEach((cell,cIndex)=>{
+
+
+
+
+
+
+
+
+
+
+			cell.onclick = function(){
+
+			// CLICK TOP HEADER → TOGGLE COLUMN
+			if(rIndex === 0 && cIndex > 0){
+
+				if(tableEl._activeCols.has(cIndex)){
+					tableEl._activeCols.delete(cIndex);
+				}else{
+					tableEl._activeCols.add(cIndex);
+				}
+
+				refreshMultiHighlight(tableEl);
+				return;
+			}
+
+			// CLICK FIRST COLUMN → TOGGLE ROW
+			if(cIndex === 0 && rIndex > 0){
+
+				if(tableEl._activeRows.has(rIndex)){
+					tableEl._activeRows.delete(rIndex);
+				}else{
+					tableEl._activeRows.add(rIndex);
+				}
+
+				refreshMultiHighlight(tableEl);
+				return;
+			}
+
+			// CLICK NORMAL CELL → TOGGLE ONLY THAT CELL
+			if(cell.classList.contains("mem-cell")){
+				cell.classList.remove("mem-cell");
+			}else{
+				cell.classList.add("mem-cell");
+			}
+
+		};
+			
+			
+			
+
+		});
+	});
+
+	refreshMultiHighlight(tableEl);
+}
+
+
+function refreshMultiHighlight(tableEl){
+
+	// clear all
+	tableEl.querySelectorAll("td,th").forEach(c=>{
+		c.classList.remove("mem-row","mem-col","mem-cross");
+		// DO NOT REMOVE mem-cell
+	});
+
+	const rows = tableEl.querySelectorAll("tr");
+
+	rows.forEach((row,rIndex)=>{
+
+		const cells = row.querySelectorAll("th,td");
+
+		cells.forEach((cell,cIndex)=>{
+
+			const rowActive = tableEl._activeRows.has(rIndex);
+			const colActive = tableEl._activeCols.has(cIndex);
+
+
+
+
+
+
+
+			if(rowActive && colActive){
+			cell.className = cell.className
+				.replace("mem-row","")
+				.replace("mem-col","")
+				.replace("mem-cross","")
+				+ " mem-cross";
+			}
+			else if(rowActive){
+				cell.className = cell.className
+					.replace("mem-row","")
+					.replace("mem-col","")
+					.replace("mem-cross","")
+					+ " mem-row";
+			}
+			else if(colActive){
+				cell.className = cell.className
+					.replace("mem-row","")
+					.replace("mem-col","")
+					.replace("mem-cross","")
+					+ " mem-col";
+			}
+
+
+
+
+
+		});
+	});
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function handleZodiacToggle(type){
+
+	const nameBox = document.getElementById("toggleSignNames");
+	const dignityBox = document.getElementById("toggleDignity");
+
+	if(type === "name" && nameBox.checked){
+		dignityBox.checked = false;
+	}
+
+	if(type === "dignity" && dignityBox.checked){
+		nameBox.checked = false;
+	}
+
+	buildShodaTables();
+	highlightRunningMahaInTable();
+}
+
+
+
 	
 	
 function buildShodaTables(){
 
+
+const signShort = [
+	"Mesha",
+	"Vrishaba",
+	"Mithuna",
+	"Kataka",
+	"Simha",
+	"Kanya",
+	"Thula",
+	"Vrischik",
+	"Dhanu",
+	"Makara",
+	"Kumbha",
+	"Meena"
+];
+
+
+const dignityMap = {
+
+	Sy:{
+		own:[5],
+		mool:[5],
+		uccha:1,
+		neecha:7,
+		friend:[1,4,8,9,12],
+		neutral:[3,6],
+		enemy:[2,7,10,11]
+	},
+
+	Ch:{
+		own:[4],
+		mool:[4],
+		uccha:2,
+		neecha:8,
+		friend:[1,5],
+		neutral:[3,6,7],
+		enemy:[9,10,11,12]
+	},
+
+	Ma:{
+		own:[1,8],
+		mool:[1],
+		uccha:10,
+		neecha:4,
+		friend:[5,9,12],
+		neutral:[2,7],
+		enemy:[3,6,11]
+	},
+
+	Bu:{
+	own:[3,6],
+	mool:[6],
+	uccha:6,
+	neecha:12,
+	friend:[2,5,7,10,11],
+	neutral:[1,8],
+	enemy:[4,9]
+},
+
+	Ju:{
+		own:[9,12],
+		mool:[9],
+		uccha:4,
+		neecha:10,
+		friend:[1,5,8],
+		neutral:[11],
+		enemy:[2,7,3,6]
+	},
+
+	Ve:{
+		own:[2,7],
+		mool:[7],
+		uccha:12,
+		neecha:6,
+		friend:[3,4,10,11],
+		neutral:[1,8],
+		enemy:[5,9]
+	},
+
+	Sa:{
+		own:[10],
+		mool:[11],
+		uccha:7,
+		neecha:1,
+		friend:[2,3,6],
+		neutral:[9,12],
+		enemy:[4,5,8]
+	},
+
+	Ra:{
+		own:[11],
+		mool:[11],
+		uccha:[2,3],
+		neecha:[8,9],
+		friend:[6,7],
+		neutral:[10],
+		enemy:[1,4,5,12]
+	},
+
+	Ke:{
+		own:[9],
+		mool:[9],
+		uccha:[8,9],
+		neecha:[2,3],
+		friend:[1,12],
+		neutral:[5,10],
+		enemy:[2,7,4,6,11]
+	}
+};
 
 if (!window._shodaBhava || !window._shodaRashi) return;
 
@@ -1823,14 +2271,113 @@ if (firstPlanet && DBA.includes(firstPlanet)) {
         if(!el) return;
 
         let html = `<table class="shoda-table"><tr><th>D</th>`;
-        DBA.forEach(p=> html += `<th>${p}</th>`);
+
+		const longNameMap = {
+			Sy: "Surya",
+			Ch: "Chandra",
+			Ma: "Mangala",
+			Ra: "Rahu",
+			Ju: "Jupiter",
+			Sa: "Saturn",
+			Bu: "Budha",
+			Ke: "Ketu",
+			Ve: "Venus"
+		};
+
+		DBA.forEach(p=> html += `<th data-planet="${p}">${longNameMap[p] || p}</th>`);
+		
+		
+		
         html += `</tr>`;
 
         vKeys.forEach(v=>{
             html += `<tr><th>D${v}</th>`;
             DBA.forEach(p=>{
-			const val = (data && data[v] && data[v][p]) ? data[v][p] : "-";
-			html += `<td>${val}</td>`;
+			
+			
+			
+			let val = (data && data[v] && data[v][p]) ? data[v][p] : "-";
+
+			if(targetId === "rashiTable" && val !== "-"){
+
+				const useNames = document.getElementById("toggleSignNames")?.checked;
+				const useDignity = document.getElementById("toggleDignity")?.checked;
+
+				const signIndex = parseInt(val) - 1;
+
+				let displayVal = val;
+
+
+
+
+
+
+				if(useNames && signShort[signIndex]){
+				displayVal = signShort[signIndex];
+			}
+			else if(useDignity && dignityMap[p]){
+
+				const d = dignityMap[p];
+
+				// Convert to 1–12 system
+				const s = signIndex + 1;
+
+				// Mooltrikona priority
+				if(d.mool.includes(s)){
+					displayVal = "MooTr";
+				}
+
+				// Uccha (if not same as mool)
+				else if(
+					(Array.isArray(d.uccha) && d.uccha.includes(s)) ||
+					(!Array.isArray(d.uccha) && d.uccha === s)
+				){
+					displayVal = "Uccha";
+				}
+
+				// Neecha
+				else if(
+					(Array.isArray(d.neecha) && d.neecha.includes(s)) ||
+					(!Array.isArray(d.neecha) && d.neecha === s)
+				){
+					displayVal = "Neecha";
+				}
+
+				// Own
+				else if(d.own.includes(s)){
+					displayVal = "Own";
+				}
+
+				// Friend
+				else if(d.friend.includes(s)){
+					displayVal = "Friend";
+				}
+
+				// Neutral
+				else if(d.neutral.includes(s)){
+					displayVal = "Sama";
+				}
+
+				// Enemy
+				else{
+					displayVal = "Enemy";
+				}
+			}
+							
+				
+				
+
+				html += `<td>${displayVal}</td>`;
+			}
+			else{
+				html += `<td>${val}</td>`;
+			}
+			
+			
+			
+			
+			
+			
 		});
 
             html += `</tr>`;
@@ -1841,7 +2388,19 @@ if (firstPlanet && DBA.includes(firstPlanet)) {
     }
 
     makeTable(window._shodaBhava,"bhavaTable");
-    makeTable(window._shodaRashi,"rashiTable");
+	makeTable(window._shodaRashi,"rashiTable");
+
+	setTimeout(()=>{
+	const bhava = document.querySelector("#bhavaTable table");
+	const rashi = document.querySelector("#rashiTable table");
+	attachMemoryEvents(bhava);
+	attachMemoryEvents(rashi);
+
+	highlightRunningMahaInTable();
+},50);
+	
+	
+
 }
 	
 	
@@ -1931,7 +2490,7 @@ function buildFullDasha(containerId, baseDeg){
   let frac=(baseDeg%nakSize)/nakSize;
   let elapsedYears=VIM_YEARS[startLord]*frac;
 
-  let birth=new Date(originalDateTime||currentDateTime);
+  let birth=new Date(currentDateTime);
 
   let mahaStart=new Date(
     birth.getTime()-elapsedYears*MS_YEAR
@@ -1957,15 +2516,20 @@ const GRID_STYLE = "display:grid; grid-template-columns: 24px 2fr 1fr 0.7fr 0.5f
     if(ageEnd < 0) ageEnd = 0;
 
     let mahaRow=document.createElement("div");
+	mahaRow.dataset.lord = KN_NAMES[mahaLord];
+	mahaRow.dataset.lord = mahaLord;
     mahaRow.dataset.s=mahaStart;
     mahaRow.dataset.e=mahaEnd;
     mahaRow.dataset.l=1;
+	mahaRow.dataset.lord = mahaLord;
     mahaRow.className = "vim-maha"; // Uses CSS from your <style>
     mahaRow.style=GRID_STYLE + "cursor:pointer; padding:6px 8px; margin:6px 0 3px 0; border:1px solid #444; border-radius:4px;";
 
     mahaRow.innerHTML=`
       <div class="vimSym"></div>
-      <div style="font-weight:900;">ಮಹಾದಶೆ – ${KN_NAMES[mahaLord]}</div>
+      <div style="${document.getElementById("modeKN")?.checked ? "font-weight:900;" : "font-weight:500;"}">
+		${document.getElementById("modeKN")?.checked ? "ಮಹಾದಶೆ – " + KN_NAMES[mahaLord] : "Mahadasha – " + EN_NAMES[mahaLord]}
+		</div>
       <div>${formatDateSmart(mahaStart)}</div>
       <div>(${ageStart} y)</div>
       <div style="text-align:center;">→</div>
@@ -2000,7 +2564,9 @@ const GRID_STYLE = "display:grid; grid-template-columns: 24px 2fr 1fr 0.7fr 0.5f
 
       bhuktiRow.innerHTML=`
         <div class="vimSym"></div>
-        <div style="font-weight:900;">ಭುಕ್ತಿ – ${KN_NAMES[bhuktiLord]}</div>
+        <div style="${document.getElementById("modeKN")?.checked ? "font-weight:900;" : "font-weight:500;"}">
+		${document.getElementById("modeKN")?.checked ? "ಭುಕ್ತಿ – " + KN_NAMES[bhuktiLord] : "Bhukti – " + EN_NAMES[bhuktiLord]}
+		</div>
         <div>${formatDateSmart(bhuktiStart)}</div>
         <div></div>
         <div style="text-align:center;">→</div>
@@ -2034,7 +2600,9 @@ const GRID_STYLE = "display:grid; grid-template-columns: 24px 2fr 1fr 0.7fr 0.5f
 
         line.innerHTML=`
           <div class="vimSym"></div>
-          <div style="font-weight:900;">ಅಂತರ – ${KN_NAMES[antaraLord]}</div>
+          <div style="${document.getElementById("modeKN")?.checked ? "font-weight:900;" : "font-weight:500;"}">
+		${document.getElementById("modeKN")?.checked ? "ಅಂತರ – " + KN_NAMES[antaraLord] : "Antara – " + EN_NAMES[antaraLord]}
+		</div>
           <div>${formatDateSmart(antaraStart)}</div>
           <div></div>
           <div style="text-align:center;">→</div>
@@ -2139,6 +2707,19 @@ const VIM_YEARS = {
 
 
 
+const EN_NAMES = {
+    Ke:"Ketu",
+    Ve:"Venus",
+    Sy:"Surya",
+    Ch:"Chandra",
+    Ma:"Mangala",
+    Ra:"Rahu",
+    Ju:"Jupiter",
+    Sa:"Saturn",
+    Bu:"Budha"
+};
+
+
 const KN_NAMES = {
     Ke:"ಕೇತು",
     Ve:"ಶುಕ್ರ",
@@ -2166,15 +2747,111 @@ function toggleVim(){
 
 
 
-	
-	
-	
-	
-	
-	
-	function highlightTodayVim(){
 
-  const today=new Date();
+
+
+
+
+
+/* ============================= */
+/* RUNNING MAHADASHA DETECTOR   */
+/* ============================= */
+
+function getRunningMaha(containerId){
+
+	const today = new Date();
+
+	const mahaRows = [...document.querySelectorAll("#"+containerId+" .vim-maha")];
+
+	for(let row of mahaRows){
+		const s = new Date(row.dataset.s);
+		const e = new Date(row.dataset.e);
+
+		if(today >= s && today < e){
+			return row.dataset.lord || null;
+		}
+	}
+	return null;
+}
+
+
+
+
+
+const KN_TO_EN = {
+	"ರವಿ":"Surya",
+	"ಚಂದ್ರ":"Chandra",
+	"ಕುಜ":"Mangala",
+	"ಬುಧ":"Budha",
+	"ಗುರು":"Jupiter",
+	"ಶುಕ್ರ":"Venus",
+	"ಶನಿ":"Saturn",
+	"ರಾಹು":"Rahu",
+	"ಕೇತು":"Ketu"
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function highlightRunningMahaInTable(){
+
+	const moonBox = document.getElementById("moonBased");
+	const lagnaBox = document.getElementById("lagnaBased");
+
+	let activeMaha = null;
+
+	if(moonBox && moonBox.checked){
+		activeMaha = getRunningMaha("vimChandra");
+	}
+	else if(lagnaBox && lagnaBox.checked){
+		activeMaha = getRunningMaha("vimLagna");
+	}
+
+	if(!activeMaha) return;
+
+	const tables = document.querySelectorAll(".shoda-table");
+
+	tables.forEach(table=>{
+
+		// clear previous highlight
+		table.querySelectorAll("th").forEach(th=>{
+			th.classList.remove("running-maha");
+		});
+
+		// match using internal planet code
+		const headers = table.querySelectorAll("tr:first-child th");
+
+		headers.forEach((th,index)=>{
+			if(index === 0) return; // skip D column
+
+			if(th.dataset.planet === activeMaha){
+				th.classList.add("running-maha");
+			}
+		});
+
+	});
+}
+	
+	
+	
+	
+	
+	
+function highlightTodayVim(){
+
+  const today = new Date();   // ← use real system date like old project
 
   document.querySelectorAll(".vimSym")
     .forEach(s=>s.textContent="");
@@ -2201,12 +2878,186 @@ function toggleVim(){
   });
 }
 
+
+
+
+
+
+
+
+
+
 	
-	
+	/* ============================= */
+/* VIM DATE FINDER ENGINE        */
+/* ============================= */
+
+function findVimDate(){
+
+  const val = document.getElementById("vimFindDate")?.value;
+  if(!val) return;
+
+  const target = new Date(val+"T00:00:00");
+
+  ["vimChandra","vimLagna"].forEach(id=>{
+    expandVimForDate(id,target);
+  });
+  
+  highlightTodayVim();
+highlightRunningMahaInTable();
+
+}
+
+
+
+
+
+
+
+
+/* ============================= */
+/* SET TODAY DATE (AUTO + BUTTON)*/
+/* ============================= */
+
+
+
+function setTodayVimDate(){
+
+  const input = document.getElementById("vimFindDate");
+  if(!input) return;
+
+  const now = new Date();
+
+  const y = now.getFullYear();
+  const m = String(now.getMonth()+1).padStart(2,"0");
+  const d = String(now.getDate()).padStart(2,"0");
+
+  // ONLY reset finder input field
+  input.value = `${y}-${m}-${d}`;
+
+  // DO NOTHING ELSE
+}
+
+
+
+
+
+
+
+
+
+
+
+function collapseVim(){
+
+  ["vimChandra","vimLagna"].forEach(id=>{
+
+    const container = document.getElementById(id);
+    if(!container) return;
+
+    // remove active highlights
+    container.querySelectorAll(".vim-maha,.vim-bhukti,.vim-antara")
+      .forEach(el=>el.classList.remove("active"));
+
+    // collapse all bhukti / antara boxes
+    [...container.children].forEach(el=>{
+      if(!el.classList.contains("vim-maha")){
+        el.style.display="none";
+      }
+    });
+
+  });
+
+}
+
+
+
+function expandVimForDate(containerId,targetDate){
+
+  const container=document.getElementById(containerId);
+  if(!container) return;
+
+  const levelLimit = parseInt(document.getElementById("expandLevel")?.value || "2");
+
+  /* =========================
+     RESET EVERYTHING
+  ========================== */
+
+  container.querySelectorAll(".vim-maha,.vim-bhukti,.vim-antara")
+    .forEach(el=>el.classList.remove("active"));
+
+  [...container.children].forEach(el=>{
+    if(!el.classList.contains("vim-maha")){
+      el.style.display="none";
+    }
+  });
+
+  /* =========================
+     FIND MATCHING ROWS
+  ========================== */
+
+  const matches=[...container.querySelectorAll("[data-s]")]
+    .filter(row=>{
+      const s=new Date(row.dataset.s);
+      const e=new Date(row.dataset.e);
+      return targetDate>=s && targetDate<e;
+    })
+    .sort((a,b)=>parseInt(a.dataset.l)-parseInt(b.dataset.l));
+
+  /* =========================
+     OPEN BASED ON LEVEL
+  ========================== */
+
+  matches.forEach(row=>{
+
+    const level = parseInt(row.dataset.l);
+
+    // highlight
+    row.classList.add("active");
+
+    // always open maha → bhukti
+    if(level === 1){
+      const bhuktiBox = row.nextElementSibling;
+      if(bhuktiBox){
+        bhuktiBox.style.display="block";
+        currentOpenMahaBox[containerId]=bhuktiBox;
+      }
+    }
+
+    // open antara ONLY if dropdown says so
+    // open antara ONLY if dropdown says so
+	if(level === 2){
+
+	  const antaraBox = row.nextElementSibling;
+
+	  if(antaraBox){
+
+		if(levelLimit === 3){
+		  antaraBox.style.display="block";
+		  currentOpenBhuktiBox[containerId]=antaraBox;
+		}else{
+		  // if switching back to Bukthi → force close antara
+		  antaraBox.style.display="none";
+		  currentOpenBhuktiBox[containerId]=null;
+		}
+
+	  }
+	}
+
+  });
+
+}
+
+
+
+
+
+
 	
 // render empty charts on first load
 window.addEventListener("load", () => {
     syncTopBarModes();
+	setTodayVimDate();	
 
     if (!raw) {
         const out = document.getElementById('out');
