@@ -265,6 +265,14 @@
 
 
 				/* ============================= */
+				/* HOVER CROSSHAIR HIGHLIGHT    */
+				/* ============================= */
+				.shoda-hover-bg {
+					background: #004d40 !important; /* Dark Teal / Emerald - Distinct new color */
+					color: #ffffff !important;
+				}
+
+				/* ============================= */
 				/* DARK ROYAL HIGHLIGHT COLORS  */
 				/* ============================= */
 
@@ -1104,6 +1112,17 @@ document.getElementById("toolEndDate").addEventListener("change", calcToolDateDi
 })();
 </script>
 
+
+
+
+
+
+
+
+
+
+
+
 <div class="division-title" onclick="toggleDivision()">
 	Divisional Charts ▶
 </div>
@@ -1291,13 +1310,12 @@ function getVedicOrdinal(n) {
 
 
 function renderVedicAspectsTab() {
-    const sel = document.getElementById("vedicAspectVargaSelect");
-    if (!sel) return;
+        const sel = document.getElementById("vedicAspectVargaSelect");
+        if (!sel) return;
 
-    if (!window._shodaBhava || !window._shodaRashi || !window._ascSigns) {
-        console.warn("⏳ Waiting for Vedic data...");
-        return;
-    }
+        if (!window._shodaBhava || !window._shodaRashi || !window._ascSigns) {
+            return; // Silently wait
+        }
 
     const v = parseInt(sel.value);
 	const rashiData = window._shodaRashi[v];
@@ -1363,17 +1381,15 @@ function renderVedicAspectsTab() {
 	const isShiftActive = document.getElementById("shiftedLagnaToggle")?.checked;
 
 	planets.forEach(p => {
-		if (visualPMap[p] === undefined) {
-			let fallbackSign = parseInt(rashiData[p]) - 1;
+    if (visualPMap[p] === undefined) {
+        let fallbackSign = parseInt(rashiData[p]) - 1;
 
-			// 🔥 FIX: Apply KP shift ONLY when Shift is OFF
-			if (modeKP && !isShiftActive) {
-				fallbackSign = (fallbackSign + kpShift) % 12;
-			}
+        // 🚫 STRICT RULE: NEVER apply KP shift to planetary positions
+        // KP shift is ONLY for display logic, NOT for star/sub calculation
 
-			visualPMap[p] = isNaN(fallbackSign) ? -1 : fallbackSign;
-		}
-	});
+        visualPMap[p] = isNaN(fallbackSign) ? -1 : fallbackSign;
+    }
+});
 
     function getVisualHouse(pBox) {
         if (pBox === undefined || pBox === -1) return "-";
@@ -1537,6 +1553,8 @@ function renderVedicAspectsTab() {
                         let aspectSuffix = aspectStrings.length > 0 ? " + " + aspectStrings.join(" + ") : "";
 
                         let displayStr = "";
+                        const mins = Math.floor((p.d * 60) % 60).toString().padStart(2, '0'); // Calculate minutes here for both views
+                        
                         if (showLordship) {
                             // Extract, Unique, and Sort Lordships numerically
                             let lordshipsArr = getPlanetLordshipLocal(p.n).filter(x => x !== "-" && x != null);
@@ -1545,9 +1563,8 @@ function renderVedicAspectsTab() {
                             // Format: PlacedHouse-Lord1,Lord2
                             let lordStr = uniqueLords.length > 0 ? `${placedHouse}-${uniqueLords.join(",")}` : `${placedHouse}`;
                             
-                            displayStr = `${name} ${Math.floor(p.d)}° - ${lordStr}${aspectSuffix}`;
+                            displayStr = `${name} ${Math.floor(p.d)}°${mins}′ - ${lordStr}${aspectSuffix}`;
                         } else {
-                            const mins = Math.floor((p.d * 60) % 60).toString().padStart(2, '0');
                             const kp = kpData[p.n] || {};
 							displayStr = `${name} ${Math.floor(p.d)}°${mins}′ | ${kp.star || "-"} / ${kp.sub || "-"} / ${kp.subsub || "-"}${aspectSuffix}`;
                         }
@@ -2294,7 +2311,7 @@ function resetTime() {
                 renderVedicAspectsTab();
             }
         } catch(e){
-            console.warn("Vedic refresh failed", e);
+            // Silenced refresh error
         }
     };
 
@@ -2330,41 +2347,73 @@ function resetTime() {
    UI RESET ENGINE
 ========================================= */
 function resetAllControlsToDefault() {
-	// 1. Reset Dropdowns
-	if (document.getElementById('aya')) document.getElementById('aya').value = 'Lahiri';
-	if (document.getElementById('expandLevel')) document.getElementById('expandLevel').value = '2';
-	if (document.getElementById('pivot')) document.getElementById('pivot').value = 'ASC';
+    // 1. Reset Standard Dropdowns
+    if (document.getElementById('aya')) document.getElementById('aya').value = 'Lahiri';
+    if (document.getElementById('expandLevel')) document.getElementById('expandLevel').value = '2';
+    if (document.getElementById('pivot')) document.getElementById('pivot').value = 'ASC';
+    if (document.getElementById('nadiHousePivot')) document.getElementById('nadiHousePivot').value = '1';
 
-	// 2. Reset Checkboxes to their initial HTML states
-	const checkboxDefaults = {
-		'topSign': false,
-		'topKP': true,
-		'topShift': true,
-		'shiftedLagnaToggle': true,
-		'modeSign2Sign': false,
-		'modeKP': true,
-		'modeKN': true,
-		'modeDateHide': true,
-		'showCusps': false,
-		'showLordship': true,
-		'useTrueNode': false,
-		'hideAllAge': false,
-		'hideBhuktiAge': true,
-		'moonBased': true,
-		'lagnaBased': false,
-		'toggleSignNames': false,
-		'toggleDignity': true
-	};
+    // 2. Reset All Checkboxes to their initial HTML states
+    const checkboxDefaults = {
+        // Main Controls
+        'topSign': false,
+        'topKP': true,
+        'topShift': true,
+        'shiftedLagnaToggle': true,
+        'modeSign2Sign': false,
+        'modeKP': true,
+        'modeKN': true,
+        'modeDateHide': true,
+        'showCusps': false,
+        'showLordship': true,
+        'useTrueNode': false,
+        
+        // Vimshottari Controls
+        'hideAllAge': false,
+        'hideBhuktiAge': true,
+        
+        // Divisional Tables Controls
+        'moonBased': true,
+        'lagnaBased': false,
+        'toggleSignNames': false,
+        'toggleDignity': true,
+        
+        // Vedic Aspects Controls
+        'rkAspectsToggle': false,
+        'includeAspectsToggle': false,
+        'includeRaKeAspectsToggle': true,
+        
+        // Nakshatra Nadi Controls
+        'nadiSubStarToggle': false,
+        'nadiAllowDuplicatesToggle': false, // <-- CHANGED TO FALSE
+        'nadiCuspalConjToggle': true,
+        'nadiCenterAlignToggle': false,
+        'nadiLocalShiftToggle': true,       // <-- CHANGED TO TRUE
+        'nadiUntenentedToggle': true
+    };
+	
+	
+	
+	
+	
+	
+	
 
-	for (const [id, isChecked] of Object.entries(checkboxDefaults)) {
-		const el = document.getElementById(id);
-		if (el) el.checked = isChecked;
-	}
+    for (const [id, isChecked] of Object.entries(checkboxDefaults)) {
+        const el = document.getElementById(id);
+        if (el) el.checked = isChecked;
+    }
 
-	// 3. Reset dynamically generated dropdowns (Vargas)
-	if (typeof initLordshipDropdown === 'function') {
-		initLordshipDropdown();
-	}
+    // 3. Reset dynamically generated dropdowns & states
+    if (typeof initLordshipDropdown === 'function') initLordshipDropdown();
+    if (typeof initVedicAspectDropdown === 'function') initVedicAspectDropdown();
+    
+    // Reset Nadi Varga dropdown explicitly
+    const nadiVargaSel = document.getElementById("nadiVargaSelect");
+    if (nadiVargaSel) nadiVargaSel.value = "1";
+    
+    // Force the Nadi Sort dropdown to reset to the new Moon Starlord on next calculation
+    window._lastNadiMoonStarlord = null; 
 }
 
 
@@ -2420,7 +2469,7 @@ document.getElementById('fIn').onchange = (e) => {
     try {
         initVedicAspectDropdown();
     } catch(e){
-        console.warn("Init dropdown failed", e);
+        // Silenced dropdown init error
     }
 })();	
 	
@@ -4465,14 +4514,27 @@ function attachMemoryEvents(tableEl){
 
 		cells.forEach((cell,cIndex)=>{
 
+			// ---- NEW HOVER CROSSHAIR LOGIC ----
+			cell.addEventListener('mouseenter', () => {
+				// Highlight entire row
+				cells.forEach(c => c.classList.add('shoda-hover-bg'));
+				// Highlight entire column
+				rows.forEach(r => {
+					const c = r.querySelectorAll("th,td")[cIndex];
+					if (c) c.classList.add('shoda-hover-bg');
+				});
+			});
 
-
-
-
-
-
-
-
+			cell.addEventListener('mouseleave', () => {
+				// Remove highlight from row
+				cells.forEach(c => c.classList.remove('shoda-hover-bg'));
+				// Remove highlight from column
+				rows.forEach(r => {
+					const c = r.querySelectorAll("th,td")[cIndex];
+					if (c) c.classList.remove('shoda-hover-bg');
+				});
+			});
+			// ------------------------------------
 
 			cell.onclick = function(){
 			
@@ -5888,6 +5950,7 @@ window.addEventListener("load", () => {
 
     initLordshipDropdown();   // ⭐ ADD THIS LINE HERE
 	initVedicAspectDropdown(); // <-- Add this here
+	initNakshatraNadiDropdown(); // Initialize Nadi dropdowns for default open state
 
     if (!raw) {
         const out = document.getElementById('out');
@@ -6140,6 +6203,20 @@ async function fetchFromCloud() {
         return;
     }
 
+    // 🔥 NEW: Auto-fetch dynamic timezone using Open-Meteo's free API
+    let dynamicOffset = 330; // Default to IST as a safety fallback
+    try {
+        const tzResponse = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latVal}&longitude=${lonVal}&timezone=auto`);
+        const tzData = await tzResponse.json();
+        
+        // Open-Meteo returns the offset in seconds. We divide by 60 to get minutes.
+        if (tzData && tzData.utc_offset_seconds !== undefined) {
+            dynamicOffset = tzData.utc_offset_seconds / 60; 
+        }
+    } catch (error) {
+        console.warn("Timezone fetch failed. Falling back to IST.", error);
+    }
+
     const requestData = {
         year: parseInt(y),
         month: parseInt(m),
@@ -6149,7 +6226,7 @@ async function fetchFromCloud() {
         second: parseInt(sec),
         lat: parseFloat(latVal),
         lon: parseFloat(lonVal),
-        timezone_offset: 330, 
+        timezone_offset: dynamicOffset, // 🔥 Dynamic offset applied here!
         horary_mode: false 
     };
 
@@ -6322,7 +6399,7 @@ async function fetchFromCloud() {
             }, 3000);
 
         } else {
-            alert("Server Error: " + result.message);
+            // Silenced Server Error
             btn.innerHTML = originalText;
             btn.disabled = false;
         }
@@ -6352,7 +6429,7 @@ async function fetchFromCloud() {
         }, 3000);
         // ----------------------------
 
-        alert("Network Error: Could not reach the server.");
+        // Silenced Network Error
         btn.innerHTML = originalText;
         btn.disabled = false;
     }
@@ -6439,8 +6516,7 @@ function loadCloudProfile(event) {
             
             // Validate that this is actually a Cloud Profile JSON
             if (data.type !== "CloudHoroscopeProfile") {
-                alert("Invalid file. Please select a valid Cloud Horoscope Profile JSON.");
-                return;
+                return; // Silently exit if wrong file type
             }
 
             // Populate the UI fields
@@ -6479,8 +6555,8 @@ function loadCloudProfile(event) {
             }, 300); 
 
         } catch (error) {
-            console.error("Error parsing profile JSON:", error);
-            alert("Error reading the profile file. It might be corrupted.");
+            // Silently ignore parsing errors for wrong files
+            return;
         }
     };
     
@@ -6531,19 +6607,21 @@ function loadCloudProfile(event) {
 
 
 <div class="division-title" onclick="toggleNakshatraNadi()">
-    Nakshatra Nadi For All Divisional Charts ▼
+    Nakshatra Nadi For All Divisional Charts ▲
 </div>
 
-<div id="nakshatraNadiWrapper" class="shoda-wrapper" style="display:none; padding-bottom: 40px;">
+<div id="nakshatraNadiWrapper" class="shoda-wrapper" style="display:block; padding-bottom: 40px;">
     
+    <div id="nadiSingleKundali" style="display:flex; justify-content:center; margin-bottom: 40px; width:100%;"></div>
+
     <div style="text-align:center; margin-bottom:14px; display:flex; justify-content:center; align-items:center; gap:25px; flex-wrap:wrap;">
         <label style="color:var(--grid-line); font-weight:bold; font-size:16px; display:flex; align-items:center; gap:8px;">
             SELECT DIVISIONAL CHART:
             <select id="nadiVargaSelect"
-                    onchange="renderNakshatraNadiTab()"
-                    style="background:#000;color:#fff;border:1px solid var(--grid-line);
-                           padding:6px 10px;font-size:16px;font-weight:bold;cursor:pointer;">
-            </select>
+        onchange="handleNadiVargaChange()"
+        style="background:#000;color:#fff;border:1px solid var(--grid-line);
+               padding:6px 10px;font-size:16px;font-weight:bold;cursor:pointer;">
+			</select>
         </label>
 
         <label style="color:var(--grid-line); font-weight:bold; font-size:16px; display:flex; align-items:center; gap:8px;">
@@ -6555,10 +6633,20 @@ function loadCloudProfile(event) {
             </select>
         </label>
 
-        <label style="color:var(--grid-line); font-weight:bold; font-size:16px; display:flex; align-items:center; gap:8px;">
+
+
+
+
+
+
+
+
+
+
+<label style="color:var(--grid-line); font-weight:bold; font-size:16px; display:flex; align-items:center; gap:8px;">
             PIVOT:
             <select id="nadiHousePivot"
-                    onchange="renderNakshatraNadiTab()"
+                    onchange="handleNadiPivotChange()"
                     style="background:#000;color:#fff;border:1px solid var(--grid-line);
                            padding:6px 10px;font-size:16px;font-weight:bold;cursor:pointer;">
                 <option value="1">1st House</option>
@@ -6573,7 +6661,21 @@ function loadCloudProfile(event) {
                 <option value="10">10th House</option>
                 <option value="11">11th House</option>
                 <option value="12">12th House</option>
+                <option value="Sy">Surya</option>
+                <option value="Ch">Chandra</option>
+                <option value="Ma">Mangala</option>
+                <option value="Ra">Rahu</option>
+                <option value="Ju">Jupiter</option>
+                <option value="Sa">Saturn</option>
+                <option value="Bu">Budha</option>
+                <option value="Ke">Ketu</option>
+                <option value="Ve">Venus</option>
             </select>
+        </label>
+
+        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#ff8800; font-weight:bold; font-size:16px;">
+            <input type="checkbox" id="nadiCenterAlignToggle" onchange="renderNakshatraNadiTab()">
+            Center Align
         </label>
     </div>
 
@@ -6584,7 +6686,7 @@ function loadCloudProfile(event) {
         </label>
         
         <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#facc15;">
-            <input type="checkbox" id="nadiAllowDuplicatesToggle" checked onchange="renderNakshatraNadiTab()">
+            <input type="checkbox" id="nadiAllowDuplicatesToggle" onchange="renderNakshatraNadiTab()">
             Allow duplicates
         </label>
 
@@ -6593,21 +6695,31 @@ function loadCloudProfile(event) {
             Include cuspal conjunctions
         </label>
 
-        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#ff8800;">
-            <input type="checkbox" id="nadiCenterAlignToggle" onchange="renderNakshatraNadiTab()">
-            Center Align
+        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#c084fc;">
+            <input type="checkbox" id="nadiUntenentedToggle" checked onchange="renderNakshatraNadiTab()">
+            Untenented
         </label>
 
         <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; color:#ff3366;">
-            <input type="checkbox" id="nadiLocalShiftToggle" onchange="renderNakshatraNadiTab()">
+            <input type="checkbox" id="nadiLocalShiftToggle" checked onchange="renderNakshatraNadiTab()">
             Shift
         </label>
+    </div>
 
     <div id="nadiGridContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 15px; max-width: 1400px; margin: 0 auto; width: 100%;">
-        </div>
+    </div>
 </div>
 
 <script>
+
+
+
+
+
+
+
+
+
 /* =========================================================
    NAKSHATRA NADI CALCULATION ENGINE (LOCKED SIGN & SHIFT ENGINE)
 ========================================================= */
@@ -6768,9 +6880,6 @@ function getNadiAbsoluteLongitude(pCode, v) {
 
 
 
-
-
-
 // STRICT PLACEMENT & SHIFTING ENGINE
 function getNadiScriptString(pCode, v) {
     const NADI_NAMES = { Sy:"Surya", Ch:"Chandra", Ma:"Mangala", Bu:"Budha", Ju:"Jupiter", Ve:"Venus", Sa:"Saturn", Ra:"Rahu", Ke:"Ketu" };
@@ -6780,132 +6889,261 @@ function getNadiScriptString(pCode, v) {
     if (!chart) return `${NADI_NAMES[pCode] || pCode} - Pending`;
 
     const signLords = {1:"Ma",2:"Ve",3:"Bu",4:"Ch",5:"Sy",6:"Bu",7:"Ve",8:"Ma",9:"Ju",10:"Sa",11:"Sa",12:"Ju"};
+    const SHIFTED_LAGNA = document.getElementById("nadiLocalShiftToggle")?.checked;
+    const pivotStr = document.getElementById("nadiHousePivot")?.value || "1";
+    const isPlanetPivot = ["Sy", "Ch", "Ma", "Ra", "Ju", "Sa", "Bu", "Ke", "Ve"].includes(pivotStr);
+    const isSignMode = document.getElementById("modeSign2Sign")?.checked;
 
-    // 1. Get Pure Sign (strictly for Ra/Ke Dispositor Lordship mapping)
-    function getPureSign(code) {
+    let placedHouse = "-";
+    let lordships = [];
+
+    // Helper to get visual sign index directly from the chart rendering array
+    function getChartSignIndex(code) {
         for (let i = 0; i < 12; i++) {
-            let obj = chart[i].find(x => x.n === code);
-            if (obj && obj.pureSign !== undefined) return obj.pureSign;
+            if (code === "ASC") {
+                if (chart[i].find(x => x.isAsc)) return i;
+            } else {
+                if (chart[i].find(x => x.n === code)) return i;
+            }
         }
         return -1;
     }
 
-    let pureSign = getPureSign(pCode);
-    
-    // 🔥 ISOLATED ASCENDANT: Ignores global KP/Shift checkboxes. Strictly uses Local Shift Toggle!
-    function getIsolatedAscendant() {
-        // Base unshifted Ascendant for this varga
-        let baseAsc = window._pureAscSigns && window._pureAscSigns[v] !== undefined ? window._pureAscSigns[v] : 0;
+    if (isSignMode) {
+        // =====================================================================
+        // 🟢 SIGN MODE OVERRIDE (STRICT ZODIAC HOUSE PLACEMENT - IGNORE DEGREES)
+        // =====================================================================
+        let planetSignIdx = getChartSignIndex(pCode);
+        let baseSignIdx = isPlanetPivot ? getChartSignIndex(pivotStr) : getChartSignIndex("ASC");
         
-        // Check ONLY the Local Shift Toggle
-        let shiftAmount = 0;
-        const SHIFTED_LAGNA = document.getElementById("nadiLocalShiftToggle")?.checked;
-        
-        if (SHIFTED_LAGNA && window._kpSignShift && window._kpSignShift[v] !== undefined) {
-            shiftAmount = window._kpSignShift[v];
-        }
+        if (planetSignIdx !== -1 && baseSignIdx !== -1) {
+            // Strictly calculate House based on Zodiac Sign distances
+            placedHouse = ((planetSignIdx - baseSignIdx + 12) % 12) + 1;
 
-        return (baseAsc + shiftAmount) % 12;
-    }
+            function getSignModeHousesOf(lord) {
+                let houses = [];
+                for (let h = 1; h <= 12; h++) {
+                    let hSign = (baseSignIdx + h - 1) % 12;
+                    if (signLords[hSign + 1] === lord) houses.push(h);
+                }
+                return houses;
+            }
 
-    // Locks the table's lordships to the isolated ascendant
-    let ascSign = getIsolatedAscendant();
-    
-    // 🔥 EXACT KP HOUSE: Reverted back to querying the main Bhava table
-    let placedHouse = "-";
-    if (window._shodaBhava && window._shodaBhava[v] && window._shodaBhava[v][pCode]) {
-        placedHouse = window._shodaBhava[v][pCode];
-    }
-
-    function getHousesOf(lord) {
-        let houses = [];
-        for (let h = 1; h <= 12; h++) {
-            let hSign = ((ascSign + h - 1) % 12) + 1; 
-            if (signLords[hSign] === lord) houses.push(h);
-        }
-        return houses;
-    }
-
-    let lordships = [];
-    if (pCode === "Ra" || pCode === "Ke") {
-        if (pureSign !== -1) {
-            let dispositor = signLords[pureSign + 1];
-            lordships = getHousesOf(dispositor);
-            
-            // EXACT KP HOUSE FOR DISPOSITOR 
-            let dispPlaced = window._shodaBhava[v][dispositor];
-            if (dispPlaced && dispPlaced !== "-") {
-                lordships.unshift(dispPlaced);
+            if (pCode === "Ra" || pCode === "Ke") {
+                let dispositor = signLords[planetSignIdx + 1];
+                lordships = getSignModeHousesOf(dispositor);
+                
+                let dispSignIdx = getChartSignIndex(dispositor);
+                if (dispSignIdx !== -1) {
+                    let dispPlaced = ((dispSignIdx - baseSignIdx + 12) % 12) + 1;
+                    lordships.unshift(dispPlaced); // Dispositor's placed house
+                }
+            } else {
+                lordships = getSignModeHousesOf(pCode);
             }
         }
     } else {
-        lordships = getHousesOf(pCode);
-    }
+        // =====================================================================
+        // 🔴 KP MODE LOGIC (RESPECT DEGREES, CUSPS, SHIFTS, AND PLACIDUS)
+        // =====================================================================
+        if (isPlanetPivot) {
+            let pivotDeg = getNadiAbsoluteLongitude(pivotStr, v);
+            if (pivotDeg !== -1) {
+                let targetDeg = getNadiAbsoluteLongitude(pCode, v);
+                if (targetDeg !== -1) {
+                    let diff = (targetDeg - pivotDeg + 360) % 360;
+                    placedHouse = Math.floor(diff / 30) + 1;
+                }
 
-    const cuspalConjToggle = document.getElementById("nadiCuspalConjToggle")?.checked;
-    // Cuspal conjunctions strictly apply to D1 (v === 1) chart only!
-    if (cuspalConjToggle && v === 1) {
-        let absDeg = getNadiAbsoluteLongitude(pCode);
-        if (absDeg !== -1) {
-            let activeCusps = null;
-            if (typeof currentCusps !== "undefined" && currentCusps && Object.keys(currentCusps).length > 0) {
-                activeCusps = currentCusps;
-            } else if (window.raw && window.raw.ayanamshas) {
-                const aya = document.getElementById('aya')?.value || 'Lahiri';
-                if(window.raw.ayanamshas[aya].cusps) activeCusps = window.raw.ayanamshas[aya].cusps;
+                let purePivotSign = Math.floor(pivotDeg / 30); 
+                let lordshipPivotSign = purePivotSign;
+                if (SHIFTED_LAGNA && (pivotDeg % 30) >= 15) {
+                    lordshipPivotSign = (purePivotSign + 1) % 12;
+                }
+
+                function getHousesOfPivot(lord) {
+                    let houses = [];
+                    for (let h = 1; h <= 12; h++) {
+                        let hSign = (lordshipPivotSign + h - 1) % 12 + 1; 
+                        if (signLords[hSign] === lord) houses.push(h);
+                    }
+                    return houses;
+                }
+
+                if (pCode === "Ra" || pCode === "Ke") {
+                    let nodeDeg = getNadiAbsoluteLongitude(pCode, v);
+                    if (nodeDeg !== -1) {
+                        let nodeSign = Math.floor(nodeDeg / 30);
+                        let dispositor = signLords[nodeSign + 1];
+                        lordships = getHousesOfPivot(dispositor);
+
+                        let dispDeg = getNadiAbsoluteLongitude(dispositor, v);
+                        if (dispDeg !== -1) {
+                            let dDiff = (dispDeg - pivotDeg + 360) % 360;
+                            let dispPlaced = Math.floor(dDiff / 30) + 1;
+                            lordships.unshift(dispPlaced);
+                        }
+                    }
+                } else {
+                    lordships = getHousesOfPivot(pCode);
+                }
+
+                const cuspalConjToggle = document.getElementById("nadiCuspalConjToggle")?.checked;
+                if (cuspalConjToggle && v === 1) {
+                    const applyCuspalConjunctionNew = (targetPlanet) => {
+                        let absDeg = getNadiAbsoluteLongitude(targetPlanet, v);
+                        if (absDeg !== -1) {
+                            for(let c = 1; c <= 12; c++){
+                                let cuspDeg = (pivotDeg + (c - 1) * 30) % 360;
+                                let cdiff = Math.abs(absDeg - cuspDeg);
+                                if (cdiff > 180) cdiff = 360 - cdiff;
+                                if (cdiff <= 3.3333) lordships.push(c);
+                            }
+                        }
+                    };
+
+                    applyCuspalConjunctionNew(pCode);
+                    if (pCode === "Ra" || pCode === "Ke") {
+                        let nodeDeg = getNadiAbsoluteLongitude(pCode, v);
+                        if (nodeDeg !== -1) {
+                            let nodeSign = Math.floor(nodeDeg / 30);
+                            let dispositor = signLords[nodeSign + 1];
+                            if (dispositor) applyCuspalConjunctionNew(dispositor);
+                        }
+                    }
+                }
+            }
+        } else {
+            // Standard 1-12 House Pivot Logic (KP Mode)
+            function getIsolatedAscendantData() {
+                // 🔥 RESTORED FROM V173: Bulletproof ASC extraction to fix the "nonsense lordships" bug.
+                let pureAscSign = window._pureAscSigns && window._pureAscSigns[v] !== undefined ? window._pureAscSigns[v] : 0;
+                let shiftAmount = 0;
+                const SHIFTED_LAGNA = document.getElementById("nadiLocalShiftToggle")?.checked;
+                if (SHIFTED_LAGNA && window._kpSignShift && window._kpSignShift[v] !== undefined) {
+                    shiftAmount = window._kpSignShift[v];
+                }
+                return { placementSign: pureAscSign, lordshipSign: (pureAscSign + shiftAmount) % 12 };
             }
 
-            if (activeCusps) {
-                for(let c = 1; c <= 12; c++){
-                    let cuspDeg = activeCusps[c];
-                    if (cuspDeg !== undefined) {
-                        let diff = Math.abs(absDeg - parseFloat(cuspDeg));
-                        if (diff > 180) diff = 360 - diff;
-                        if (diff <= 3.3333) lordships.push(c);
+            let ascData = getIsolatedAscendantData();
+            
+            // 🔥 EXACT KP HOUSE FIX: Fetches from _shodaBhava to respect Placidus Cusps in D1 
+            if (window._shodaBhava && window._shodaBhava[v] && window._shodaBhava[v][pCode]) {
+                placedHouse = window._shodaBhava[v][pCode];
+            }
+
+            function getHousesOf(lord) {
+                let houses = [];
+                for (let h = 1; h <= 12; h++) {
+                    let hSign = ((ascData.lordshipSign + h - 1) % 12) + 1; 
+                    if (signLords[hSign] === lord) houses.push(h);
+                }
+                return houses;
+            }
+
+            if (pCode === "Ra" || pCode === "Ke") {
+                let pureSign = -1;
+                for (let i = 0; i < 12; i++) {
+                    let obj = chart[i].find(x => x.n === pCode);
+                    if (obj && obj.pureSign !== undefined) pureSign = obj.pureSign;
+                }
+                if (pureSign !== -1) {
+                    let dispositor = signLords[pureSign + 1];
+                    lordships = getHousesOf(dispositor);
+                    let dispPlaced = window._shodaBhava[v][dispositor];
+                    if (dispPlaced && dispPlaced !== "-") {
+                        lordships.unshift(dispPlaced);
+                    }
+                }
+            } else {
+                lordships = getHousesOf(pCode);
+            }
+
+            const cuspalConjToggle = document.getElementById("nadiCuspalConjToggle")?.checked;
+            if (cuspalConjToggle && v === 1) {
+                let activeCusps = null;
+                if (typeof currentCusps !== "undefined" && currentCusps && Object.keys(currentCusps).length > 0) {
+                    activeCusps = currentCusps;
+                } else if (window.raw && window.raw.ayanamshas) {
+                    const aya = document.getElementById('aya')?.value || 'Lahiri';
+                    if(window.raw.ayanamshas[aya].cusps) activeCusps = window.raw.ayanamshas[aya].cusps;
+                }
+
+                if (activeCusps) {
+                    const applyCuspalConjunction = (targetPlanet) => {
+                        let absDeg = getNadiAbsoluteLongitude(targetPlanet, v);
+                        if (absDeg !== -1) {
+                            for(let c = 1; c <= 12; c++){
+                                let cuspDeg = activeCusps[c];
+                                if (cuspDeg !== undefined) {
+                                    let diff = Math.abs(absDeg - parseFloat(cuspDeg));
+                                    if (diff > 180) diff = 360 - diff;
+                                    if (diff <= 3.3333) lordships.push(c);
+                                }
+                            }
+                        }
+                    };
+
+                    applyCuspalConjunction(pCode);
+                    if (pCode === "Ra" || pCode === "Ke") {
+                        let pureSign = -1;
+                        for (let i = 0; i < 12; i++) {
+                            let obj = chart[i].find(x => x.n === pCode);
+                            if (obj && obj.pureSign !== undefined) pureSign = obj.pureSign;
+                        }
+                        if (pureSign !== -1) {
+                            let dispositor = signLords[pureSign + 1];
+                            if (dispositor) applyCuspalConjunction(dispositor);
+                        }
                     }
                 }
             }
         }
     }
 
+    // =====================================================================
+    // COMMON POST-PROCESSING (DUPLICATES, ROTATION, UNTENTED)
+    // =====================================================================
     const allowDuplicates = document.getElementById("nadiAllowDuplicatesToggle")?.checked;
     if (allowDuplicates && placedHouse !== "-" && placedHouse != null) {
         lordships.push(placedHouse);
     }
 
-    const pivotStr = document.getElementById("nadiHousePivot")?.value || "1";
-    const pivotHouse = parseInt(pivotStr);
-    
-    function rotateHouse(h) {
-        if (h === "-" || h == null) return "-";
-        let num = parseInt(h);
-        if (isNaN(num)) return h;
-        return ((num - pivotHouse + 12) % 12) + 1;
-    }
+    let rotatedPlacedHouse = placedHouse;
+    let rotatedLordships = [...lordships];
 
-    let rotatedPlacedHouse = rotateHouse(placedHouse);
-    let rotatedLordships = lordships.map(rotateHouse);
+    // ONLY apply the rotation math if the pivot is a House Number (1-12).
+    // If the pivot is a Planet, the distances were already calculated perfectly above!
+    if (!isPlanetPivot) {
+        const pivotHouse = parseInt(pivotStr);
+        function rotateHouse(h) {
+            if (h === "-" || h == null) return "-";
+            let num = parseInt(h);
+            if (isNaN(num)) return h;
+            return ((num - pivotHouse + 12) % 12) + 1;
+        }
+
+        rotatedPlacedHouse = rotateHouse(placedHouse);
+        rotatedLordships = lordships.map(rotateHouse);
+    }
 
     let lordsToProcess = allowDuplicates ? rotatedLordships : [...new Set(rotatedLordships)];
     lordsToProcess = lordsToProcess.filter(x => x !== "-" && x != null).sort((a,b) => Number(a) - Number(b));
     let lordsStr = lordsToProcess.join(",");
 
-    // UNTENTED PLANET LOGIC
     let isUntented = false;
     const pNamesList = ["Sy", "Ch", "Ma", "Bu", "Ju", "Ve", "Sa", "Ra", "Ke"];
-    
     if (pNamesList.includes(pCode)) {
         let tented = false;
         const SL_MAP = ["Ke", "Ve", "Sy", "Ch", "Ma", "Ra", "Ju", "Sa", "Bu"];
-        
         for (let p of pNamesList) {
             let deg = getNadiAbsoluteLongitude(p, v);
             if (deg !== -1) {
                 let nakIdx = Math.floor((deg * 3) / 40); 
                 let starlordCode = SL_MAP[nakIdx % 9];
                 if (starlordCode === pCode) {
-                    tented = true;
-                    break;
+                    tented = true; break;
                 }
             }
         }
@@ -6913,13 +7151,10 @@ function getNadiScriptString(pCode, v) {
     }
 
     let finalName = NADI_NAMES[pCode] || pCode;
-    if (isUntented) {
-        finalName += " $"; // Append symbol if untented
-    }
+    if (isUntented) finalName += " $";
 
     let result = `${finalName} - ${rotatedPlacedHouse}`;
     if (lordsStr) result += ` - ${lordsStr}`;
-    
     return result;
 }
 
@@ -6929,6 +7164,35 @@ function getNadiScriptString(pCode, v) {
 
 
 
+
+
+
+function handleNadiVargaChange() {
+    // 1. Reset Pivot back to default (1st House)
+    const pivotSel = document.getElementById("nadiHousePivot");
+    if (pivotSel) {
+        pivotSel.value = "1";
+    }
+
+    // 2. Reset Sort By back to default (Moon's Starlord)
+    const sortSel = document.getElementById("nadiSortSelect");
+    if (sortSel) {
+        let defaultSort = "Ke";
+        try { 
+            if (typeof moonStarLord !== "undefined" && moonStarLord) {
+                defaultSort = moonStarLord;
+            } 
+        } catch(e) {}
+        
+        if (defaultSort === "Mo") defaultSort = "Ch";
+        
+        sortSel.value = defaultSort;
+        window._lastNadiMoonStarlord = defaultSort; 
+    }
+
+    // 3. Render the newly selected chart with the reset parameters
+    renderNakshatraNadiTab();
+}
 
 
 
@@ -6949,6 +7213,149 @@ function renderNakshatraNadiTab() {
     const v = parseInt(sel.value);
     const showSubStars = document.getElementById("nadiSubStarToggle")?.checked;
     
+    // ==========================================
+    // NEW: RENDER KUNDALI CHART ABOVE NADI TABLE
+    // ==========================================
+    const kundaliContainer = document.getElementById("nadiSingleKundali");
+    if (kundaliContainer) {
+        kundaliContainer.innerHTML = "";
+        const chartData = window._vargaChartStore ? window._vargaChartStore[v] : null;
+        
+        if (chartData) {
+            const card = document.createElement('div'); 
+            card.className = 'varga-card';
+            card.style.maxWidth = '1200px'; 
+            card.style.width = '100%';
+            card.innerHTML = `<div class="varga-title">D-${v} Selected Chart</div>`;
+
+            const k = document.createElement('div'); 
+            k.className = 'kundali';
+            const m = [11, 0, 1, 2, 10, -1, -1, 3, 9, -1, -1, 4, 8, 7, 6, 5];
+            
+            // Find Ascendant index to color the ASC house
+            let ascIndex = 0;
+            for (let i = 0; i < 12; i++) {
+                if (chartData[i].some(p => p.isAsc)) { ascIndex = i; break; }
+            }
+
+            const modeKN = document.getElementById("modeKN")?.checked;
+            const planetNameMapKN = { Sy: "ರವಿ", Ch: "ಚಂದ್ರ", Ma: "ಕುಜ", Bu: "ಬುಧ", Ju: "ಗುರು", Ve: "ಶುಕ್ರ", Sa: "ಶನಿ", Ra: "ರಾಹು", Ke: "ಕೇತು", ASC: "ಲಗ್ನ" };
+
+            // === NEW HELPER: Fetch Lordship & KP data matching Vedic Tab ===
+            const showLordship = document.getElementById("showLordship")?.checked;
+            const kpData = typeof computeKPForVarga === "function" ? computeKPForVarga(v) : {};
+
+            function getPlanetLordshipLocal(pCode) {
+                const signLords = { 1:"Ma",2:"Ve",3:"Bu",4:"Ch", 5:"Sy",6:"Bu",7:"Ve",8:"Ma", 9:"Ju",10:"Sa",11:"Sa",12:"Ju" };
+                const ascSignIdx = ascIndex + 1;
+
+                function housesOfLord(lord) {
+                    const arr = [];
+                    for(let h=1; h<=12; h++) {
+                        const signOfHouse = ((ascSignIdx + h - 2) % 12) + 1;
+                        if(signLords[signOfHouse] === lord) arr.push(h);
+                    }
+                    return arr;
+                }
+
+                if(pCode === "Ra" || pCode === "Ke") {
+                    let signPlaced = null;
+                    let pObj = null;
+                    for(let i=0; i<12; i++) {
+                        pObj = chartData[i].find(p => p.n === pCode);
+                        if(pObj) break;
+                    }
+                    if(!pObj) return [];
+
+                    if(pObj.pureSign !== undefined) {
+                        signPlaced = pObj.pureSign + 1;
+                    } else {
+                        for(let i=0; i<12; i++) {
+                            if(chartData[i].includes(pObj)) { signPlaced = i + 1; break; }
+                        }
+                    }
+
+                    const dispositor = signLords[signPlaced];
+                    const lordHouses = housesOfLord(dispositor);
+
+                    let dispositorHouse = null;
+                    for(let i=0; i<12; i++) {
+                        const obj = chartData[i].find(p => p.n === dispositor);
+                        if(obj) {
+                            dispositorHouse = ((i - ascIndex + 12) % 12) + 1;
+                            break;
+                        }
+                    }
+                    if (dispositorHouse) return [dispositorHouse, ...lordHouses];
+                    return lordHouses;
+                }
+                return housesOfLord(pCode);
+            }
+            // === END HELPER ===
+
+            m.forEach(sIdx => {
+                const h = document.createElement('div'); 
+                h.className = 'house';
+
+                if (sIdx === -1) {
+                    if (!card.querySelector('.center-box')) {
+                        const cb = document.createElement('div'); 
+                        cb.className = 'center-box'; 
+                        cb.innerText = `D${v}`;
+                        k.appendChild(cb);
+                    }
+                } else {
+                    const houseNum = ((sIdx - ascIndex + 12) % 12) + 1;
+                    if(sIdx === ascIndex) h.classList.add("asc-house");
+                    h.innerHTML += `<div class="house-num">${houseNum}</div>`;
+
+                    // Sort planets properly
+                    let planets = [...chartData[sIdx]];
+                    if(sIdx <= 5) planets.sort((a,b) => a.d - b.d);
+                    else planets.sort((a,b) => b.d - a.d);
+
+                    planets.forEach(p => {
+                        let lineClass = p.isAsc ? "p-line asc-line" : "p-line";
+                        const name = modeKN ? (planetNameMapKN[p.n] || p.n) : p.n;
+
+                        let displayStr = "";
+
+                        if (p.isAsc) {
+                            const mins = Math.floor((p.d * 60) % 60).toString().padStart(2, '0');
+                            displayStr = `ASC ${Math.floor(p.d)}°${mins}′`;
+                            if (modeKN) displayStr = `ಲಗ್ನ ${Math.floor(p.d)}°${mins}′`;
+                        } else {
+                            let placedHouse = ((sIdx - ascIndex + 12) % 12) + 1;
+
+                            const mins = Math.floor((p.d * 60) % 60).toString().padStart(2, '0'); // Calculate minutes here for both views
+                            
+                            if (showLordship) {
+                                // Extract, Unique, and Sort Lordships numerically
+                                let lordshipsArr = getPlanetLordshipLocal(p.n).filter(x => x !== "-" && x != null);
+                                let uniqueLords = [...new Set(lordshipsArr)].sort((a, b) => Number(a) - Number(b));
+                                
+                                // Format: PlacedHouse-Lord1,Lord2
+                                let lordStr = uniqueLords.length > 0 ? `${placedHouse}-${uniqueLords.join(",")}` : `${placedHouse}`;
+                                
+                                displayStr = `${name} ${Math.floor(p.d)}°${mins}′ - ${lordStr}`;
+                            } else {
+                                // Fallback format if Lordship toggle is off
+                                const kp = kpData[p.n] || {};
+                                displayStr = `${name} ${Math.floor(p.d)}°${mins}′ | ${kp.star || "-"} / ${kp.sub || "-"} / ${kp.subsub || "-"}`;
+                            }
+                        }
+                        
+                        h.innerHTML += `<div class="${lineClass}" style="font-size:15px; color:#fff; white-space:normal;">${displayStr}</div>`;
+                    });
+                    k.appendChild(h);
+                }
+            });
+            card.appendChild(k);
+            kundaliContainer.appendChild(card);
+        }
+    }
+    // ==========================================
+
     let startPlanet = sortSel.value || "Ke";
     const vimBaseOrder = ["Ke", "Ve", "Sy", "Ch", "Ma", "Ra", "Ju", "Sa", "Bu"];
     let startIndex = vimBaseOrder.indexOf(startPlanet);
@@ -7007,6 +7414,10 @@ function renderNakshatraNadiTab() {
 	
 	
 
+    
+
+    const hideUntenentedStars = document.getElementById("nadiUntenentedToggle")?.checked;
+
     container.innerHTML = "";
     
     planetsOrder.forEach(pCode => {
@@ -7031,27 +7442,41 @@ function renderNakshatraNadiTab() {
             </div>
         `;
         
+        // Pre-calculate script strings to check for the untented '$' symbol
+        const pScript = getNadiScriptString(pCode, v);
+        const subScript = getNadiScriptString(lords.sub, v);
+        const subSubScript = getNadiScriptString(lords.subSub, v);
+
+        // Determine if stars should be visually emptied (blank space)
+        const emptyStar = hideUntenentedStars && pScript.includes("$");
+        const emptyStarOfSub = hideUntenentedStars && subScript.includes("$");
+        const emptyStarOfSubSub = hideUntenentedStars && subSubScript.includes("$");
+
+        // Generate the rendering string (empty string renders as blank columns)
+        const starScriptToRender = emptyStar ? "" : getNadiScriptString(lords.star, v);
+        const starOfSubScriptToRender = emptyStarOfSub ? "" : getNadiScriptString(starOfSub, v);
+        const starOfSubSubScriptToRender = emptyStarOfSubSub ? "" : getNadiScriptString(starOfSubSub, v);
+
         // Teal (#0bf4e6)
-        html += buildRow("Planet", getNadiScriptString(pCode, v), "#0bf4e6");
-        html += buildRow("Starlord", getNadiScriptString(lords.star, v), "#0bf4e6");
+        html += buildRow("Planet", pScript, "#0bf4e6");
+        html += buildRow("Starlord", starScriptToRender, "#0bf4e6");
         
         // Yellow (#facc15)
-        html += buildRow("Sub-lord", getNadiScriptString(lords.sub, v), "#facc15");
+        html += buildRow("Sub-lord", subScript, "#facc15");
         if (showSubStars) {
-            html += buildRow("Star of Sub", getNadiScriptString(starOfSub, v), "#facc15");
+            html += buildRow("Star of Sub", starOfSubScriptToRender, "#facc15");
         }
         
         // White (#ffffff)
-        html += buildRow("Sub-sub", getNadiScriptString(lords.subSub, v), "#ffffff", !showSubStars);
+        html += buildRow("Sub-sub", subSubScript, "#ffffff", !showSubStars);
         if (showSubStars) {
-            html += buildRow("Star of Sub-Sub", getNadiScriptString(starOfSubSub, v), "#ffffff", true);
+            html += buildRow("Star of Sub-Sub", starOfSubSubScriptToRender, "#ffffff", true);
         }
 
         card.innerHTML = html;
         container.appendChild(card);
     });
 }
-
 
 
 
@@ -7073,24 +7498,59 @@ function renderNakshatraNadiTab() {
             originalCalcNadi();
         }
         try {
-            let currentStar = "Ke";
-            try { if (typeof moonStarLord !== "undefined" && moonStarLord) currentStar = moonStarLord; } catch(e) {}
-            if (currentStar === "Mo") currentStar = "Ch";
+            const pivotVal = document.getElementById("nadiHousePivot")?.value;
+            const isPlanetPivot = ["Sy", "Ch", "Ma", "Ra", "Ju", "Sa", "Bu", "Ke", "Ve"].includes(pivotVal);
+            const sSel = document.getElementById("nadiSortSelect");
 
-            if (window._lastNadiMoonStarlord !== currentStar) {
-                const sSel = document.getElementById("nadiSortSelect");
-                if (sSel) sSel.value = currentStar;
-                window._lastNadiMoonStarlord = currentStar;
+            if (isPlanetPivot) {
+                // FORCE: If a planet is the pivot, it MUST remain the first one in sorting!
+                if (sSel && sSel.value !== pivotVal) {
+                    sSel.value = pivotVal;
+                }
+            } else {
+                // STANDARD: If using 1-12 House Pivot, follow the Moon's Starlord
+                let currentStar = "Ke";
+                try { if (typeof moonStarLord !== "undefined" && moonStarLord) currentStar = moonStarLord; } catch(e) {}
+                if (currentStar === "Mo") currentStar = "Ch";
+
+                if (window._lastNadiMoonStarlord !== currentStar) {
+                    if (sSel) sSel.value = currentStar;
+                    window._lastNadiMoonStarlord = currentStar;
+                }
             }
 
             if (typeof renderNakshatraNadiTab === "function") {
                 renderNakshatraNadiTab();
             }
         } catch(e){
-            console.warn("Nakshatra Nadi UI refresh failed", e);
+            // Silenced Nadi UI refresh error
         }
     };
 })();
+
+
+
+
+
+function handleNadiPivotChange() {
+    const val = document.getElementById("nadiHousePivot").value;
+    const planets = ["Sy", "Ch", "Ma", "Ra", "Ju", "Sa", "Bu", "Ke", "Ve"];
+    
+    if (planets.includes(val)) {
+        const sortSel = document.getElementById("nadiSortSelect");
+        if (sortSel) {
+            sortSel.value = val;
+            // Notice: We stopped overwriting window._lastNadiMoonStarlord here!
+        }
+    }
+    renderNakshatraNadiTab();
+}
+
+
+
+
+
+
 </script>
 
 
