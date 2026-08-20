@@ -585,30 +585,103 @@
 	<body>
 
 
-		<div class="top-bar">
-		<span id="miniClock">00:00</span>
-		<button onclick="shiftTime(-60)">-1m</button>
-		<button onclick="shiftTime(60)">+1m</button>
-		<button onclick="resetTime()">R</button>
 		
 		
 		
 		
-		<label>
-		<input type="checkbox" id="topSign" onchange="enforceSingleMode('modeSign2Sign')"> Sign
-		</label>
-		<label>
-			<input type="checkbox" id="topKP" checked onchange="enforceSingleMode('modeKP')"> KP
-		</label>
-		<label>
-			<input type="checkbox" id="topVedic" onchange="enforceSingleMode('modeVedic')"> Vedic
-		</label>
 		
 		
-		<label>
-			<input type="checkbox" id="topShift" checked onchange="syncShiftToggle()"> Shift
-		</label>
+		<div class="top-bar" id="permanentBar" style="padding: 4px 8px; gap: 4px;">
+		
+		
+		<!-- Menu Toggle Button -->
+		<button id="toggleTopBarBtn" onclick="toggleTopBar()" style="background:transparent; border:none; color:var(--asc-yellow); font-size:18px; cursor:pointer; padding:0; margin:0; line-height:1; outline:none;">&#9776;</button>
+		
+		
+		
+		<!-- Expandable Content Box -->
+		<div id="topBarContent" style="display: none; align-items: center; gap: 6px;">
+			<span id="miniClock" style="font-size:13px;">00:00</span>
+			<button onclick="shiftTime(-60)" style="padding: 2px 6px; font-size: 11px;">-1m</button>
+			<button onclick="shiftTime(60)" style="padding: 2px 6px; font-size: 11px;">+1m</button>
+			<button onclick="resetTime()" style="padding: 2px 6px; font-size: 11px;">R</button>
+			
+			<label style="font-size: 12px; gap: 2px;">
+			    <input type="checkbox" id="topSign" onchange="enforceSingleMode('modeSign2Sign')"> Sign
+			</label>
+			<label style="font-size: 12px; gap: 2px;">
+				<input type="checkbox" id="topKP" checked onchange="enforceSingleMode('modeKP')"> KP
+			</label>
+			<label style="font-size: 12px; gap: 2px;">
+				<input type="checkbox" id="topVedic" onchange="enforceSingleMode('modeVedic')"> Vedic
+			</label>
+			<label style="font-size: 12px; gap: 2px;">
+				<input type="checkbox" id="topShift" checked onchange="syncShiftToggle()"> Shift
+			</label>
+			<label style="font-size: 12px; gap: 2px; color: #10b981; font-weight: bold;">
+				<input type="checkbox" id="topNode" checked onchange="document.getElementById('useTrueNode').checked = this.checked; calc();"> Node
+			</label>
+
+			<!-- Full Pivot Dropdown (Compact) -->
+			<label style="display:flex; align-items:center; gap:2px; margin-left:4px; color:var(--text-white); font-size: 12px;">
+				Pivot:
+				<select id="topBarPivot" onchange="syncAllPivots(this.id)" style="padding:2px; font-size:11px; background:#222; color:white; border:1px solid var(--grid-line);">
+					<option value="1">ASC</option>
+					<option value="2">2nd House</option>
+					<option value="3">3rd House</option>
+					<option value="4">4th House</option>
+					<option value="5">5th House</option>
+					<option value="6">6th House</option>
+					<option value="7">7th House</option>
+					<option value="8">8th House</option>
+					<option value="9">9th House</option>
+					<option value="10">10th House</option>
+					<option value="11">11th House</option>
+					<option value="12">12th House</option>
+					<option value="Sy">Surya</option>
+					<option value="Ch">Chandra</option>
+					<option value="Ma">Mangala</option>
+					<option value="Ra">Rahu</option>
+					<option value="Ju">Jupiter</option>
+					<option value="Sa">Saturn</option>
+					<option value="Bu">Budha</option>
+					<option value="Ke">Ketu</option>
+					<option value="Ve">Venus</option>
+				</select>
+			</label>
+			
+			
+		</div>
 	</div>
+
+	
+	
+	
+	
+	<script>
+		// Logic to handle the compact expand/collapse state
+		function toggleTopBar() {
+			const content = document.getElementById("topBarContent");
+			const btn = document.getElementById("toggleTopBarBtn");
+			if (content.style.display === "none") {
+				content.style.display = "flex";
+				btn.innerHTML = "&#10006;"; // Clean Cross (✖) to close
+			} else {
+				content.style.display = "none";
+				btn.innerHTML = "&#9776;"; // Standard Hamburger Menu (☰) to open
+			}
+		}
+	</script>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 
 
 
@@ -953,7 +1026,25 @@
 		
 		
 		<script>
-		
+		// ==========================================
+		// TRUE NODE DEFAULT CONFIGURATION (TOGGLEABLE)
+		// ==========================================
+		(function() {
+			// Hook into the engine's reset function to ensure True Node defaults to ON during reloads/fetches
+			const originalReset = window.resetAllControlsToDefault;
+			window.resetAllControlsToDefault = function() {
+				if (typeof originalReset === "function") originalReset();
+				const nodeToggle = document.getElementById("useTrueNode");
+				if (nodeToggle) nodeToggle.checked = true; // Sets default to True, but allows manual toggling!
+			};
+			
+			// Also ensure it is turned on during the very first page load
+			window.addEventListener("DOMContentLoaded", () => {
+				const nodeToggle = document.getElementById("useTrueNode");
+				if (nodeToggle) nodeToggle.checked = true;
+			});
+		})();
+
 		
 		function enforceSingleMode(activeId) {
 		if (window._modeSwitchLock) return;
@@ -1062,7 +1153,7 @@
 		</label>
 		
 		<label style="margin-left:6px; color:#10b981; font-weight:bold;">
-		<input type="checkbox" id="useTrueNode" onchange="calc()"> True Node
+		<input type="checkbox" id="useTrueNode" onchange="calc()" checked> True Node
 		</label>
 	</div>
 
@@ -1325,7 +1416,7 @@ function renderSignVsKp() {
     
     let lagnaShifted = d.lagna;
     let globalAscShift = 0;
-    if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
+    if (originalDateTime && currentDateTime) {
         const diffMs = currentDateTime - originalDateTime;
         const diffMinutes = diffMs / 60000;
         globalAscShift = diffMinutes * 0.25;
@@ -1334,7 +1425,7 @@ function renderSignVsKp() {
     }
 
     const shiftedPlanets = { ...d.planets };
-    if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
+    if (originalDateTime && currentDateTime) {
         const diffMs = currentDateTime - originalDateTime;
         const diffDays = (diffMs / 60000) / 1440;
         const PLANET_SPEED = { Surya:0.9856, Chandra:13.176, Mangala:0.524, Budha:1.2, Jupiter:0.083, Venus:1.18, Saturn:0.033, Rahu:-0.05295, Ketu:-0.05295 };
@@ -1498,7 +1589,7 @@ function renderSignVsKp() {
         // 2. KP MODE CHART
         // ------------------
         let baseDeg = lagnaShifted;
-        if (pivot !== "ASC") baseDeg = d.planets[pivot];
+        if (pivot !== "ASC") baseDeg = shiftedPlanets[pivot];
 
         let ascSign_K, ascDeg_K;
 
@@ -1532,7 +1623,7 @@ function renderSignVsKp() {
                 pivotD30Sign = ascD30Sign;
                 pivotD30Deg = ascD30Deg;
             } else {
-                const pivotRawDeg = d.planets[pivot];
+                const pivotRawDeg = shiftedPlanets[pivot];
                 const sign = Math.floor(pivotRawDeg / 30);
                 const deg = pivotRawDeg % 30;
                 const isOdd = (sign % 2 === 0);
@@ -1567,7 +1658,7 @@ function renderSignVsKp() {
             chartKP[ascSign_K].push({ n: "ASC", d: ascDeg_K, isAsc: true });
 
             pNames.forEach(p => {
-                const rawDeg = d.planets[p];
+                const rawDeg = shiftedPlanets[p];
                 const sign = Math.floor(rawDeg / 30);
                 const deg = rawDeg % 30;
                 const isOdd = (sign % 2 === 0);
@@ -1658,7 +1749,7 @@ function renderSignVsKp() {
             chartKP[ascSign_K].push({ n: "ASC", d: ascDeg_K, isAsc: true });
 
             pNames.forEach(p => {
-                const rawDeg = (p === pivot && pivot !== "ASC") ? baseDeg : d.planets[p];
+                const rawDeg = (p === pivot && pivot !== "ASC") ? baseDeg : shiftedPlanets[p];
                 const sign = getVSign(rawDeg, v);
                 const deg  = (rawDeg * v) % 30;
                 let newDeg = (sign * 30 + deg) - pDeg;
@@ -1851,6 +1942,11 @@ function buildSimpleKundaliHTML(chartData, title, pivotVal, vNum, isKP) {
         } catch(e) {}
     };
 })();
+
+
+
+
+
 </script>
 
 
@@ -3124,7 +3220,7 @@ function resetAllControlsToDefault() {
         'modeDateHide': true,
         'showCusps': false,
         'showLordship': true,
-        'useTrueNode': false,
+        'useTrueNode': true,
         
         // Vimshottari Controls
         'hideAllAge': false,
@@ -4101,8 +4197,8 @@ addNodeRows("Ke");
 	let lagnaShifted = d.lagna;
 	let globalAscShift = 0; // Track this to shift Cusps
 
-	// apply time progression ONLY if shifted lagna enabled
-	if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
+	// Apply time progression (Runs universally, independent of Shifted Lagna toggle)
+	if (originalDateTime && currentDateTime) {
 		const diffMs = currentDateTime - originalDateTime;
 		const diffMinutes = diffMs / 60000;
 		globalAscShift = diffMinutes * 0.25;
@@ -4129,6 +4225,43 @@ addNodeRows("Ke");
 	const cuspData = currentCusps;
 	
 	
+	const shiftedPlanets = {};
+	Object.keys(d.planets).forEach(p => {
+		shiftedPlanets[p] = d.planets[p];
+	});
+	
+	/* =====================================================
+       TIME PROGRESSION ENGINE (PLANET SHIFT)
+       ===================================================== */
+	if (originalDateTime && currentDateTime) {
+		const diffMs = currentDateTime - originalDateTime;
+		const diffDays = (diffMs / 60000) / (60*24);
+
+		/* mean daily motions (deg/day) */
+		const PLANET_SPEED = {
+			Surya: 0.9856,
+			Chandra: 13.176,
+			Mangala: 0.524,
+			Budha: 1.2,
+			Jupiter: 0.083,
+			Venus: 1.18,
+			Saturn: 0.033,
+			Rahu: -0.05295,
+			Ketu: -0.05295
+		};
+
+		Object.keys(shiftedPlanets).forEach(p => {
+			if(!PLANET_SPEED[p]) return;
+			let newDeg = shiftedPlanets[p] + (PLANET_SPEED[p] * diffDays);
+			while(newDeg < 0) newDeg += 360;
+			while(newDeg >= 360) newDeg -= 360;
+			shiftedPlanets[p] = newDeg;
+		});
+	}
+
+	// 👉 Export the pure degrees before KP mode touches them
+	window._shiftedPlanetsGlobal = { ...shiftedPlanets };
+
 	// ---------- Compute Starlords AFTER lagnaShifted is finalized ----------
 	function getStarLord(deg){
 		const nakSize = 13 + (20/60); // 13&deg;20'
@@ -4137,112 +4270,32 @@ addNodeRows("Ke");
 		return lords[nak % 9];
 	}
 
-	let moonShifted = d.planets["Chandra"];
-
-if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
-
-	const diffMs = currentDateTime - originalDateTime;
-	const diffMinutes = diffMs / 60000;
-	const moonShift = diffMinutes * (13.176 / (24*60)); 
-	moonShifted = d.planets["Chandra"] + moonShift;
-	while (moonShifted < 0) moonShifted += 360;
-	while (moonShifted >= 360) moonShifted -= 360;
-}
-
-moonStarLord = getStarLord(moonShifted);
-
+	let moonShifted = shiftedPlanets["Chandra"];
+	moonStarLord = getStarLord(moonShifted);
 	lagnaStarLord = getStarLord(lagnaShifted);
 
-		
-	
-	   
-	   // -------- D1 Pivot 15&deg; Rule --------
-		let pivotBaseDeg = lagnaShifted;
+	// -------- D1 Pivot 15&deg; Rule --------
+	let pivotBaseDeg = lagnaShifted;
+	if (pivot !== "ASC") {
+		pivotBaseDeg = shiftedPlanets[pivot];
+	}
 
-		if (pivot !== "ASC") {
-			pivotBaseDeg = d.planets[pivot];
-		}
+	let d1AdjustedSign = Math.floor(pivotBaseDeg / 30);
+	const pivotDegInSign = pivotBaseDeg % 30;
 
-		let d1AdjustedSign = Math.floor(pivotBaseDeg / 30);
-		const pivotDegInSign = pivotBaseDeg % 30;
-
-		let d1ShiftForward = false;
-
-		if (SHIFTED_LAGNA && pivotDegInSign >= 15) {
+	let d1ShiftForward = false;
+	if (SHIFTED_LAGNA && pivotDegInSign >= 15) {
 		d1AdjustedSign = (d1AdjustedSign + 1) % 12;
 		d1ShiftForward = true;
 	}
 
-
-
-
-
-
-
-
-
-
-	
-
 	// determine base asc sign
 	let finalLagnaSign;
-
 	if (modeKP) {
 		finalLagnaSign = d1AdjustedSign;
 	} else {
 		finalLagnaSign = Math.floor(lagnaShifted / 30);
 	}
-	
-	
-	
-	const shiftedPlanets = {};
-	Object.keys(d.planets).forEach(p => {
-		shiftedPlanets[p] = d.planets[p];
-	});
-	
-	
-	
-	/* =====================================================
-   TIME PROGRESSION ENGINE (PLANET SHIFT)
-   ===================================================== */
-
-if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
-
-	const diffMs = currentDateTime - originalDateTime;
-	const diffMinutes = diffMs / 60000;
-	const diffDays = diffMinutes / (60*24);
-
-	/* mean daily motions (deg/day) */
-	const PLANET_SPEED = {
-		Surya: 0.9856,
-		Chandra: 13.176,
-		Mangala: 0.524,
-		Budha: 1.2,
-		Jupiter: 0.083,
-		Venus: 1.18,
-		Saturn: 0.033,
-		Rahu: -0.05295,
-		Ketu: -0.05295
-	};
-
-	Object.keys(shiftedPlanets).forEach(p => {
-
-			if(!PLANET_SPEED[p]) return;
-
-			let newDeg =
-				shiftedPlanets[p] +
-				(PLANET_SPEED[p] * diffDays);
-
-			/* normalize */
-			while(newDeg < 0) newDeg += 360;
-			while(newDeg >= 360) newDeg -= 360;
-
-			shiftedPlanets[p] = newDeg;
-		});
-	}
-
-	// 👉 NEW LINE ADDED HERE: Export the pure degrees before KP mode touches them
-	window._shiftedPlanetsGlobal = { ...shiftedPlanets };
 
 	const rData = d.planets_retro || {};
 	const out = document.getElementById('out');
@@ -4342,7 +4395,7 @@ if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
 				if (lagnaDeg >= 360) lagnaDeg -= 360;
 
 				pNames.forEach(p => {
-					const rawDeg = d.planets[p];
+					const rawDeg = shiftedPlanets[p];
 					const pSign = Math.floor(rawDeg / 30);
 					const pDeg = rawDeg % 30;
 					const pIsOdd = (pSign % 2 === 0);
@@ -4395,7 +4448,7 @@ if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
 				if (lagnaDeg >= 360) lagnaDeg -= 360;
 
 				pNames.forEach(p => {
-					const rawDeg = (p === pivot && pivot !== "ASC") ? baseDeg : d.planets[p];
+					const rawDeg = (p === pivot && pivot !== "ASC") ? baseDeg : shiftedPlanets[p];
 					const sign = getVSign(rawDeg, v);
 					const deg  = (rawDeg * v) % 30;
 					let full = sign * 30 + deg;
@@ -4469,7 +4522,7 @@ if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
 					pivotD30Deg = ascD30Deg;
 				} else {
 					// For planet pivot, calculate its actual D30 position
-					const pivotRawDeg = d.planets[pivot];
+					const pivotRawDeg = shiftedPlanets[pivot];
 					const sign = Math.floor(pivotRawDeg / 30);
 					const deg = pivotRawDeg % 30;
 					const isOdd = (sign % 2 === 0);
@@ -4511,7 +4564,7 @@ if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
 				pNames.forEach(p => {
 					// if (p === "Rahu" && pivot === "Ketu") return;
 					
-					const rawDeg = d.planets[p];
+					const rawDeg = shiftedPlanets[p];
 					const sign = Math.floor(rawDeg / 30);
 					
 					const deg = rawDeg % 30;
@@ -4583,7 +4636,7 @@ if (SHIFTED_LAGNA && originalDateTime && currentDateTime) {
 
 					const rawDeg = (p === pivot && pivot !== "ASC")
 						? baseDeg
-						: d.planets[p];
+						: shiftedPlanets[p];
 
 					const sign = getVSign(rawDeg, v);
 					const deg  = (rawDeg * v) % 30;
@@ -4998,8 +5051,8 @@ pNames.forEach(p=>{
 	const label = (p === "Surya") ? "Sy" : p.substring(0,2);
 	if(!window._shodaRashi[v][label]) return;
 
-	// ALWAYS use original raw longitude — ignore KP shifted planetDegs
-	const rawDeg = d.planets[p];
+	// ALWAYS use shifted raw longitude (for live time changes) — ignore KP relative offsets
+	const rawDeg = shiftedPlanets[p];
 
 	// ALWAYS compute using pure Sign2Sign logic
 	const sign = getVSign(rawDeg, v);
@@ -12092,7 +12145,7 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
                 <input type="checkbox" id="dbaCuspalConjToggle" onchange="renderDbaMixer()" checked> Include Cuspal Conj (7 Planets)
             </label>
             <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#c084fc; font-weight:bold; font-size:15px;">
-                <input type="checkbox" id="dbaUntenantedToggle" onchange="renderDbaMixer()"> Untenanted
+                <input type="checkbox" id="dbaUntenantedToggle" onchange="handleUntToggles('unt')"> Untenanted
             </label>
             <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#facc15; font-weight:bold; font-size:15px;">
                 <input type="checkbox" id="dbaHideStarlordToggle" onchange="handleDbaHideToggles('star')"> Hide Starlord
@@ -12124,7 +12177,7 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
                 <input type="checkbox" id="dbaConjMixToggle" onchange="handleConjToggles('mix')" checked> Conj Mix
             </label>
             <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#ff9933; font-weight:bold; font-size:15px;">
-                <input type="checkbox" id="dbaRaKeDispToggle" onchange="renderDbaMixer()"> RaKe Dispositor
+                <input type="checkbox" id="dbaRaKeDispToggle" onchange="renderDbaMixer()" checked> RaKe Dispositor
             </label>
 
             <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#ff9933; font-weight:bold; font-size:15px;">
@@ -12158,6 +12211,9 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
             </label>
             <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#10b981; font-weight:bold; font-size:15px;">
                 <input type="checkbox" id="dbaRaKe7thAspToggle" onchange="renderDbaMixer()"> RaKe 7th Aspect
+            </label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#c084fc; font-weight:bold; font-size:15px;">
+                <input type="checkbox" id="dbaUntXToggle" onchange="handleUntToggles('untx')"> Unt X
             </label>
         </div>
         
@@ -12655,6 +12711,23 @@ function toggleDbaMixer() {
     }
 }
 
+
+
+
+function handleUntToggles(clicked) {
+    const unt = document.getElementById("dbaUntenantedToggle");
+    const untX = document.getElementById("dbaUntXToggle");
+    if (clicked === 'unt' && unt && unt.checked) {
+        if (untX) untX.checked = false;
+    } else if (clicked === 'untx' && untX && untX.checked) {
+        if (unt) unt.checked = false;
+    }
+    if (typeof renderDbaMixer === "function") renderDbaMixer();
+}
+
+
+
+
 function handleDbaHideToggles(trigger) {
     const hideStar = document.getElementById("dbaHideStarlordToggle");
     const hideSub = document.getElementById("dbaHideSublordToggle");
@@ -12956,7 +13029,6 @@ function setDbaLevel(level, pCode) {
 
 
 
-
 function syncDbaColumnHighlight() {
     document.querySelectorAll('.dasha-col-btn').forEach(el => {
         let isActive = (dbaActiveLevel !== "none" && el.dataset.p === dbaActiveDasha);
@@ -12982,31 +13054,18 @@ function syncDbaColumnHighlight() {
         el.style.padding = "6px"; el.style.cursor = "pointer"; el.style.fontWeight = "bold"; el.style.borderRadius = "4px";
     });
 
-    const headerGrid = document.getElementById("dbaIslandsHeader");
-    
-    if (headerGrid && headerGrid.children.length >= 3) {
-        const dHeader = headerGrid.children[0];
-        const bHeader = headerGrid.children[1];
-        const aHeader = headerGrid.children[2];
-        
-        if (dbaActiveLevel === "none") {
-            headerGrid.style.gridTemplateColumns = "1fr";
-            dHeader.style.display = "block";
-            bHeader.style.display = "none";
-            aHeader.style.display = "none";
-        } else if (dbaActiveLevel === "dasha") {
-            headerGrid.style.gridTemplateColumns = "repeat(2, 1fr)";
-            dHeader.style.display = "block";
-            bHeader.style.display = "block";
-            aHeader.style.display = "none";
-        } else {
-            headerGrid.style.gridTemplateColumns = "repeat(3, 1fr)";
-            dHeader.style.display = "block";
-            bHeader.style.display = "block";
-            aHeader.style.display = "block";
-        }
-    }
+    // PERMANENTLY HIDE THE OLD STANDALONE HEADER
+    // We will generate headers dynamically inside the main grid so they align perfectly!
+    const oldHeader = document.getElementById("dbaIslandsHeader");
+    if (oldHeader) oldHeader.style.display = "none";
 }
+
+
+
+
+
+
+
 
 function clearDbaSet(type) {
     if(type==='pos') window._dbaPosSet.clear();
@@ -13447,7 +13506,7 @@ function getDbaPlanetData(targetPlanet, vNum) {
                                 if (rakeAspHouseToggle) {
                                     let diff = Math.abs(pDeg - otherDeg);
                                     if (diff > 180) diff = 360 - diff;
-                                    if (diff <= 13) isConj = true;
+                                    if (diff <= 12) isConj = true; 
                                 } else {
                                     let pSign = Math.floor(pDeg / 30);
                                     let otherSign = Math.floor(otherDeg / 30);
@@ -13459,7 +13518,7 @@ function getDbaPlanetData(targetPlanet, vNum) {
                             if (dbaConjNumToggle || dbaConjSymToggle || dbaConjMixToggle) {
                                 let diff = Math.abs(pDeg - otherDeg);
                                 if (diff > 180) diff = 360 - diff;
-                                if (diff <= 13) isConj = true;
+                                if (diff <= 12) isConj = true; 
                             }
                         }
 
@@ -13872,11 +13931,20 @@ function formatDbaBox(data, isHiddenText = false) {
     const hideStarSL = document.getElementById("dbaHideStarSLToggle")?.checked;
     const hideSubSub = document.getElementById("dbaHideSubSubToggle")?.checked;
     const hideUntenanted = document.getElementById("dbaUntenantedToggle")?.checked;
+    const hideUntX = document.getElementById("dbaUntXToggle")?.checked;
     
+    let pHouses = data.planet.houses;
+    let pPlaced = data.planet.placed;
     let pStarHouses = data.star.houses;
     let pStarPlaced = data.star.placed;
+    
+    let sHouses = data.sub.houses;
+    let sPlaced = data.sub.placed;
     let pSubStarHouses = data.subStar ? data.subStar.houses : "-";
     let pSubStarPlaced = data.subStar ? data.subStar.placed : -1;
+
+    let ssHouses = data.subSub.houses;
+    let ssPlaced = data.subSub.placed;
     let pSubSubStarHouses = data.subSubStar ? data.subSubStar.houses : "-";
     let pSubSubStarPlaced = data.subSubStar ? data.subSubStar.placed : -1;
 
@@ -13884,6 +13952,49 @@ function formatDbaBox(data, isHiddenText = false) {
         if (data.planet && data.planet.name && data.planet.name.includes("$")) { pStarHouses = ""; pStarPlaced = -1; }
         if (data.sub && data.sub.name && data.sub.name.includes("$")) { pSubStarHouses = ""; pSubStarPlaced = -1; }
         if (data.subSub && data.subSub.name && data.subSub.name.includes("$")) { pSubSubStarHouses = ""; pSubSubStarPlaced = -1; }
+    }
+
+    if (hideUntX) {
+        const getRaw = (name) => name ? name.replace("$", "").trim() : "";
+
+        // PLANET LEVEL
+        let pName = getRaw(data.planet.name);
+        let pStarName = getRaw(data.star.name);
+        let pHasDollar = data.planet.name && data.planet.name.includes("$");
+        
+        if (pName === pStarName) {
+            pStarHouses = ""; pStarPlaced = -1;
+        } else if (pHasDollar) {
+            pStarHouses = ""; pStarPlaced = -1;
+        } else {
+            pHouses = ""; pPlaced = -1;
+        }
+
+        // SUBLORD LEVEL
+        let sName = getRaw(data.sub.name);
+        let sStarName = getRaw(data.subStar ? data.subStar.name : "");
+        let sHasDollar = data.sub.name && data.sub.name.includes("$");
+        
+        if (sName === sStarName) {
+            pSubStarHouses = ""; pSubStarPlaced = -1;
+        } else if (sHasDollar) {
+            pSubStarHouses = ""; pSubStarPlaced = -1;
+        } else {
+            sHouses = ""; sPlaced = -1;
+        }
+
+        // SUB-SUB LEVEL
+        let ssName = getRaw(data.subSub.name);
+        let ssStarName = getRaw(data.subSubStar ? data.subSubStar.name : "");
+        let ssHasDollar = data.subSub.name && data.subSub.name.includes("$");
+        
+        if (ssName === ssStarName) {
+            pSubSubStarHouses = ""; pSubSubStarPlaced = -1;
+        } else if (ssHasDollar) {
+            pSubSubStarHouses = ""; pSubSubStarPlaced = -1;
+        } else {
+            ssHouses = ""; ssPlaced = -1;
+        }
     }
 
     let visibilityStyle = isHiddenText ? "visibility: hidden;" : "visibility: visible;";
@@ -13895,7 +14006,7 @@ function formatDbaBox(data, isHiddenText = false) {
         <div style="display:grid; grid-template-columns: 85px 10px 85px 1fr; gap:2px 4px; align-items:center;">
             <div style="color:${pColor}; font-weight:bold;">Planet</div><div style="color:${pColor}; font-weight:bold;">:</div>
             <div style="color:${pColor}; font-weight:bold;">${data.planet.name}</div>
-            <div style="color:${pColor}; font-weight:bold; text-align:left; display:flex; align-items:center; flex-wrap:wrap; gap:2px;">${formatDbaHouses(data.planet.houses, data.planet.placed)}</div>
+            <div style="color:${pColor}; font-weight:bold; text-align:left; display:flex; align-items:center; flex-wrap:wrap; gap:2px;">${pHouses === "" ? "" : formatDbaHouses(pHouses, pPlaced)}</div>
     `;
 
     if (!hideStar) {
@@ -13910,11 +14021,12 @@ function formatDbaBox(data, isHiddenText = false) {
     html += `</div>`; 
 
     if (!hideSub) {
+        let formattedSubHouses = sHouses === "" ? "" : formatDbaHouses(sHouses, sPlaced);
         html += `
         <div style="border-top:1px solid #888; margin-top:6px; padding-top:6px; display:grid; grid-template-columns: 85px 10px 85px 1fr; gap:2px 4px; align-items:center;">
             <div style="color:${pColor}; font-weight:bold;">Sublord</div><div style="color:${pColor}; font-weight:bold;">:</div>
             <div style="color:${pColor}; font-weight:bold;">${data.sub.name}</div>
-            <div style="color:${pColor}; font-weight:bold; text-align:left; display:flex; align-items:center; flex-wrap:wrap; gap:2px;">${formatDbaHouses(data.sub.houses, data.sub.placed)}</div>
+            <div style="color:${pColor}; font-weight:bold; text-align:left; display:flex; align-items:center; flex-wrap:wrap; gap:2px;">${formattedSubHouses}</div>
         `;
         
         if (!hideStarSL) {
@@ -13930,12 +14042,13 @@ function formatDbaBox(data, isHiddenText = false) {
     }
 
     if (!hideSubSub) {
+        let formattedSubSubHouses = ssHouses === "" ? "" : formatDbaHouses(ssHouses, ssPlaced);
         let formattedSubSubStarHouses = pSubSubStarHouses === "" ? "" : formatDbaHouses(pSubSubStarHouses, pSubSubStarPlaced);
         html += `
         <div style="border-top:1px solid #888; margin-top:6px; padding-top:6px; display:grid; grid-template-columns: 85px 10px 85px 1fr; gap:2px 4px; align-items:center;">
             <div style="color:${pColor}; font-weight:bold;">Sub-Sub</div><div style="color:${pColor}; font-weight:bold;">:</div>
             <div style="color:${pColor}; font-weight:bold;">${data.subSub.name}</div>
-            <div style="color:${pColor}; font-weight:bold; text-align:left; display:flex; align-items:center; flex-wrap:wrap; gap:2px;">${formatDbaHouses(data.subSub.houses, data.subSub.placed)}</div>
+            <div style="color:${pColor}; font-weight:bold; text-align:left; display:flex; align-items:center; flex-wrap:wrap; gap:2px;">${formattedSubSubHouses}</div>
 
             <div style="color:${pColor}; font-weight:bold;">&#11088; SSL</div><div style="color:${pColor}; font-weight:bold;">:</div>
             <div style="color:${pColor}; font-weight:bold;">${data.subSubStar.name}</div>
@@ -14259,8 +14372,14 @@ function renderDbaMixer() {
         let newGridHtml = "";
         let iterOrder = [];
         let dashaData, bukthiData, antaraData;
+        
+        // Use 'auto' instead of '1fr' to dynamically size columns based strictly on text content length
+        let cols = "auto"; 
 
         if (dbaActiveLevel === "none") {
+            cols = "auto";
+            newGridHtml += `<div style="background:#004d40; color:#0bf4e6; font-size:22px; font-weight:900; padding:12px; border:2px solid #0bf4e6; border-radius:6px; text-align:center; letter-spacing:1px;">DASHA</div>`;
+
             let mLord = getDbaMoonStarLord();
             let startIdx = DBA_PLANETS.indexOf(mLord);
             if (startIdx === -1) startIdx = 0;
@@ -14269,14 +14388,18 @@ function renderDbaMixer() {
             iterOrder.forEach(dashaCode => {
                 let dData = getDbaMinimalScript(dashaCode, vNum);
                 newGridHtml += `
-                    <div style="display:grid; grid-template-columns: 1fr; gap:20px; align-items: stretch; width: 100%;">
-                        <div style="background:#111; border:2px solid #0bf4e6; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5);">
-                            ${formatDbaBox(dData, false)}
-                        </div>
+                    <div style="background:#111; border:2px solid #0bf4e6; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5); height:100%; box-sizing:border-box;">
+                        ${formatDbaBox(dData, false)}
                     </div>
                 `;
             });
         } else if (dbaActiveLevel === "dasha") {
+            cols = "auto auto"; // Let text size dictate the width natively
+            newGridHtml += `
+                <div style="background:#004d40; color:#0bf4e6; font-size:22px; font-weight:900; padding:12px; border:2px solid #0bf4e6; border-radius:6px; text-align:center; letter-spacing:1px;">DASHA</div>
+                <div style="background:#4d2b00; color:#ff8800; font-size:22px; font-weight:900; padding:12px; border:2px solid #ff8800; border-radius:6px; text-align:center; letter-spacing:1px;">BUKTHI</div>
+            `;
+
             let startIdx = DBA_PLANETS.indexOf(dbaActiveDasha);
             if (startIdx === -1) startIdx = 0;
             iterOrder = [...DBA_PLANETS.slice(startIdx), ...DBA_PLANETS.slice(0, startIdx)];
@@ -14287,17 +14410,22 @@ function renderDbaMixer() {
             iterOrder.forEach(bukthiCode => {
                 bukthiData = getDbaMinimalScript(bukthiCode, vNum);
                 newGridHtml += `
-                    <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:20px; align-items: stretch; width: 100%;">
-                        <div style="background:#111; border:2px solid #0bf4e6; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5);">
-                            ${formatDbaBox(dashaData, false)}
-                        </div>
-                        <div style="background:#111; border:2px solid #ff8800; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5);">
-                            ${formatDbaBox(bukthiData, false)}
-                        </div>
+                    <div style="background:#111; border:2px solid #0bf4e6; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5); height:100%; box-sizing:border-box;">
+                        ${formatDbaBox(dashaData, false)}
+                    </div>
+                    <div style="background:#111; border:2px solid #ff8800; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5); height:100%; box-sizing:border-box;">
+                        ${formatDbaBox(bukthiData, false)}
                     </div>
                 `;
             });
         } else if (dbaActiveLevel === "bukthi") {
+            cols = "auto auto auto"; // Let text size dictate the width natively
+            newGridHtml += `
+                <div style="background:#004d40; color:#0bf4e6; font-size:22px; font-weight:900; padding:12px; border:2px solid #0bf4e6; border-radius:6px; text-align:center; letter-spacing:1px;">DASHA</div>
+                <div style="background:#4d2b00; color:#ff8800; font-size:22px; font-weight:900; padding:12px; border:2px solid #ff8800; border-radius:6px; text-align:center; letter-spacing:1px;">BUKTHI</div>
+                <div style="background:#2e004f; color:#c084fc; font-size:22px; font-weight:900; padding:12px; border:2px solid #c084fc; border-radius:6px; text-align:center; letter-spacing:1px;">ANTARA</div>
+            `;
+
             let startIdx = DBA_PLANETS.indexOf(dbaActiveBukthi);
             if (startIdx === -1) startIdx = 0;
             iterOrder = [...DBA_PLANETS.slice(startIdx), ...DBA_PLANETS.slice(0, startIdx)];
@@ -14309,20 +14437,25 @@ function renderDbaMixer() {
             iterOrder.forEach(antaraCode => {
                 antaraData = getDbaMinimalScript(antaraCode, vNum);
                 newGridHtml += `
-                    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:20px; align-items: stretch; width: 100%;">
-                        <div style="background:#111; border:2px solid #0bf4e6; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5);">
-                            ${formatDbaBox(dashaData, false)}
-                        </div>
-                        <div style="background:#111; border:2px solid #ff8800; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5);">
-                            ${formatDbaBox(bukthiData, false)}
-                        </div>
-                        <div style="background:#111; border:2px solid #c084fc; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5);">
-                            ${formatDbaBox(antaraData, false)}
-                        </div>
+                    <div style="background:#111; border:2px solid #0bf4e6; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5); height:100%; box-sizing:border-box;">
+                        ${formatDbaBox(dashaData, false)}
+                    </div>
+                    <div style="background:#111; border:2px solid #ff8800; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5); height:100%; box-sizing:border-box;">
+                        ${formatDbaBox(bukthiData, false)}
+                    </div>
+                    <div style="background:#111; border:2px solid #c084fc; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5); height:100%; box-sizing:border-box;">
+                        ${formatDbaBox(antaraData, false)}
                     </div>
                 `;
             });
         } else if (dbaActiveLevel === "antara") {
+            cols = "auto auto auto"; // Let text size dictate the width natively
+            newGridHtml += `
+                <div style="background:#004d40; color:#0bf4e6; font-size:22px; font-weight:900; padding:12px; border:2px solid #0bf4e6; border-radius:6px; text-align:center; letter-spacing:1px;">DASHA</div>
+                <div style="background:#4d2b00; color:#ff8800; font-size:22px; font-weight:900; padding:12px; border:2px solid #ff8800; border-radius:6px; text-align:center; letter-spacing:1px;">BUKTHI</div>
+                <div style="background:#2e004f; color:#c084fc; font-size:22px; font-weight:900; padding:12px; border:2px solid #c084fc; border-radius:6px; text-align:center; letter-spacing:1px;">ANTARA</div>
+            `;
+
             dashaData = getDbaMinimalScript(dbaActiveDasha, vNum);
             bukthiData = getDbaMinimalScript(dbaActiveBukthi, vNum);
             antaraData = getDbaMinimalScript(dbaActiveAntara, vNum); 
@@ -14330,20 +14463,24 @@ function renderDbaMixer() {
             if (!dashaData || !bukthiData || !antaraData) return;
 
             newGridHtml += `
-                <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:20px; align-items: stretch; width: 100%;">
-                    <div style="background:#111; border:2px solid #0bf4e6; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5);">
-                        ${formatDbaBox(dashaData, false)}
-                    </div>
-                    <div style="background:#111; border:2px solid #ff8800; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5);">
-                        ${formatDbaBox(bukthiData, false)}
-                    </div>
-                    <div style="background:#111; border:2px solid #c084fc; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5);">
-                        ${formatDbaBox(antaraData, false)}
-                    </div>
+                <div style="background:#111; border:2px solid #0bf4e6; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5); height:100%; box-sizing:border-box;">
+                    ${formatDbaBox(dashaData, false)}
+                </div>
+                <div style="background:#111; border:2px solid #ff8800; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5); height:100%; box-sizing:border-box;">
+                    ${formatDbaBox(bukthiData, false)}
+                </div>
+                <div style="background:#111; border:2px solid #c084fc; border-radius:8px; padding:15px; box-shadow:0 4px 6px rgba(0,0,0,0.5); height:100%; box-sizing:border-box;">
+                    ${formatDbaBox(antaraData, false)}
                 </div>
             `;
         }
         
+        // CONVERT THE WRAPPER INTO A TRUE ALIGNED GRID
+        grid.style.display = "grid";
+        grid.style.gridTemplateColumns = cols;
+        grid.style.gap = "20px";
+        grid.style.alignItems = "stretch";
+        grid.style.width = "100%";
         grid.innerHTML = newGridHtml;
 
     } catch (err) {
