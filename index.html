@@ -593,13 +593,7 @@
 		
 		<div class="top-bar" id="permanentBar" style="padding: 4px 8px; gap: 4px;">
 		
-		
-		<!-- Menu Toggle Button -->
-		<button id="toggleTopBarBtn" onclick="toggleTopBar()" style="background:transparent; border:none; color:var(--asc-yellow); font-size:18px; cursor:pointer; padding:0; margin:0; line-height:1; outline:none;">&#9776;</button>
-		
-		
-		
-		<!-- Expandable Content Box -->
+		<!-- Expandable Content Box (Moved BEFORE the button so it expands to the left) -->
 		<div id="topBarContent" style="display: none; align-items: center; gap: 6px;">
 			<span id="miniClock" style="font-size:13px;">00:00</span>
 			<button onclick="shiftTime(-60)" style="padding: 2px 6px; font-size: 11px;">-1m</button>
@@ -618,8 +612,8 @@
 			<label style="font-size: 12px; gap: 2px;">
 				<input type="checkbox" id="topShift" checked onchange="syncShiftToggle()"> Shift
 			</label>
-			<label style="font-size: 12px; gap: 2px; color: #10b981; font-weight: bold;">
-				<input type="checkbox" id="topNode" checked onchange="document.getElementById('useTrueNode').checked = this.checked; calc();"> Node
+			<label style="margin-left:6px; color:#10b981; font-weight:bold;">
+			<input type="checkbox" id="topNode" onchange="document.getElementById('useTrueNode').checked = this.checked; calc()" checked> True 
 			</label>
 
 			<!-- Full Pivot Dropdown (Compact) -->
@@ -649,26 +643,27 @@
 					<option value="Ve">Venus</option>
 				</select>
 			</label>
-			
-			
 		</div>
+
+		<!-- Menu Toggle Button (Narrow Clean SVG Hamburger) -->
+		<button id="toggleTopBarBtn" onclick="toggleTopBar()" style="background:transparent; border:none; padding:0; margin:0; cursor:pointer; outline:none; display:flex; align-items:center; justify-content:center;">
+			<svg width="15" height="14" viewBox="0 0 15 14" fill="none" style="display:block;">
+				<line x1="1" y1="2" x2="14" y2="2" stroke="var(--asc-yellow)" stroke-width="2" stroke-linecap="round"/>
+				<line x1="1" y1="7" x2="14" y2="7" stroke="var(--asc-yellow)" stroke-width="2" stroke-linecap="round"/>
+				<line x1="1" y1="12" x2="14" y2="12" stroke="var(--asc-yellow)" stroke-width="2" stroke-linecap="round"/>
+			</svg>
+		</button>
+		
 	</div>
 
-	
-	
-	
-	
 	<script>
 		// Logic to handle the compact expand/collapse state
 		function toggleTopBar() {
 			const content = document.getElementById("topBarContent");
-			const btn = document.getElementById("toggleTopBarBtn");
 			if (content.style.display === "none") {
 				content.style.display = "flex";
-				btn.innerHTML = "&#10006;"; // Clean Cross (✖) to close
 			} else {
 				content.style.display = "none";
-				btn.innerHTML = "&#9776;"; // Standard Hamburger Menu (☰) to open
 			}
 		}
 	</script>
@@ -1030,18 +1025,22 @@
 		// TRUE NODE DEFAULT CONFIGURATION (TOGGLEABLE)
 		// ==========================================
 		(function() {
-			// Hook into the engine's reset function to ensure True Node defaults to ON during reloads/fetches
+			// Hook into the engine's reset function to ensure True Node defaults to OFF during reloads/fetches
 			const originalReset = window.resetAllControlsToDefault;
 			window.resetAllControlsToDefault = function() {
 				if (typeof originalReset === "function") originalReset();
 				const nodeToggle = document.getElementById("useTrueNode");
-				if (nodeToggle) nodeToggle.checked = true; // Sets default to True, but allows manual toggling!
+				if (nodeToggle) nodeToggle.checked = false;
+				const topNodeToggle = document.getElementById("topNode");
+				if (topNodeToggle) topNodeToggle.checked = false;
 			};
 			
-			// Also ensure it is turned on during the very first page load
+			// Ensure it is turned off during the very first page load
 			window.addEventListener("DOMContentLoaded", () => {
 				const nodeToggle = document.getElementById("useTrueNode");
-				if (nodeToggle) nodeToggle.checked = true;
+				if (nodeToggle) nodeToggle.checked = false;
+				const topNodeToggle = document.getElementById("topNode");
+				if (topNodeToggle) topNodeToggle.checked = false;
 			});
 		})();
 
@@ -1153,7 +1152,7 @@
 		</label>
 		
 		<label style="margin-left:6px; color:#10b981; font-weight:bold;">
-		<input type="checkbox" id="useTrueNode" onchange="calc()" checked> True Node
+		<input type="checkbox" id="useTrueNode" onchange="document.getElementById('topNode').checked = this.checked; calc()"> True Node
 		</label>
 	</div>
 
@@ -3220,7 +3219,7 @@ function resetAllControlsToDefault() {
         'modeDateHide': true,
         'showCusps': false,
         'showLordship': true,
-        'useTrueNode': true,
+        'useTrueNode': false,
         
         // Vimshottari Controls
         'hideAllAge': false,
@@ -3338,7 +3337,12 @@ document.getElementById('fIn').onchange = (e) => {
 function updateHeader() {
     if(!raw) return;
 
-    document.getElementById('personName').innerText = raw.meta?.name || "Unknown";
+    // Pull name from the Profile Input box first, fallback to JSON meta, then raw name
+    let profileName = document.getElementById("onName")?.value.trim();
+    let finalName = profileName || raw.meta?.name || raw.name || "Unknown";
+    
+    // Force the final name to Title Case
+    document.getElementById('personName').innerText = finalName.toLowerCase().replace(/\b\w/g, s => s.toUpperCase());
 
     let dob = "2000-01-01";
     let tob = "00:00:00";
@@ -6156,33 +6160,20 @@ if (firstPlanet && DBA.includes(firstPlanet)) {
 
 
 
+		// Get real ASC sign index stored during calc()
+		// This exactly mirrors the visual chart, automatically respecting any shift logic (KP, Vedic, Time Progression)
+		const ascSignIndex = (window._ascSigns && window._ascSigns[v] !== undefined) ? window._ascSigns[v] : 0;
+
 		for(let h=1;h<=12;h++){
+			// calculate zodiac sign of this house
+			const signOfHouse = ((ascSignIndex + h - 1) % 12) + 1;
 
-	// get real ASC sign index stored during calc()
-	// Lords table must follow ORIGINAL ASC only (ignore dropdown override)
-
-		const d = raw.ayanamshas[document.getElementById('aya').value];
-
-		// original lagna without dropdown override
-		let originalLagna = d.lagna;
-
-		// apply time shift if active (same logic as calc)
-		if (originalDateTime && currentDateTime) {
-			const diffMs = currentDateTime - originalDateTime;
-			const diffMinutes = diffMs / 60000;
-			const ascShift = diffMinutes * 0.25;
-			originalLagna += ascShift;
-			while (originalLagna < 0) originalLagna += 360;
-			while (originalLagna >= 360) originalLagna -= 360;
-		}
-
-		// compute varga ASC sign using pure varga logic
-		const ascSignIndex = getVSign(originalLagna, v);
-
-	// calculate zodiac sign of this house
-	const signOfHouse = ((ascSignIndex + h - 1) % 12) + 1;
-
-	const lord = signLords[signOfHouse];
+			const lord = signLords[signOfHouse];
+			
+			
+			
+			
+			
 
 	let housePlaced = "-";
 
@@ -12212,6 +12203,9 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
             <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#10b981; font-weight:bold; font-size:15px;">
                 <input type="checkbox" id="dbaRaKe7thAspToggle" onchange="renderDbaMixer()"> RaKe 7th Aspect
             </label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#ff3366; font-weight:bold; font-size:15px;">
+                <input type="checkbox" id="dbaRaKeFullToggle" onchange="renderDbaMixer()"> RaKe Full
+            </label>
             <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#c084fc; font-weight:bold; font-size:15px;">
                 <input type="checkbox" id="dbaUntXToggle" onchange="handleUntToggles('untx')"> Unt X
             </label>
@@ -12416,9 +12410,36 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
         <!-- Filled by JS -->
     </div>
 
+    <!-- BRACKET RULES LEGEND -->
+    <div style="margin-top: 25px; padding-top: 15px; border-top: 1px dashed #333; text-align: center; display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; width: 100%;">
+        <div style="color: #888; font-size: 13px; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase;">
+            <span style="color: #fff; font-size: 16px; margin-right: 4px;">( )</span> Conjunction
+        </div>
+        <div style="color: #888; font-size: 13px; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase;">
+            <span style="color: #fff; font-size: 16px; margin-right: 4px;">{ }</span> Aspect
+        </div>
+        <div style="color: #888; font-size: 13px; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase;">
+            <span style="color: #fff; font-size: 16px; margin-right: 4px;">[ ]</span> Dispositor
+        </div>
+    </div>
+
 </div>
 
 <script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const UNIFIED_TEMPLATES = {
   manual: { name: "Manual Entry", pos: [], support: [], neg: [], note: "" },
   even_odd: { name: "Even-Odd", pos: [2, 4, 6, 8, 10, 12], support: [8, 12], neg: [1, 3, 5, 7, 9, 11], note: "" },
@@ -13150,8 +13171,8 @@ function formatDbaHouses(houseString, placedHouse, inheritedColor = null) {
 
     const hideUnselected = document.getElementById("dbaHideUnselected")?.checked;
     
-    // PARSER FOR MIXED CONJUNCTIONS WITH COLOR TAGS (e.g. "CONJ|Sy(3,8)")
-    let mixMatch = str.match(/^([a-zA-Z_\|]+)\((.*?)\)$/);
+    // PARSER FOR MIXED CONJUNCTIONS WITH COLOR TAGS (e.g. "CONJ|Sy(3,8)" or "DISP|Ju[4,7]")
+    let mixMatch = str.match(/^([a-zA-Z_\|]+)[\(\[\{](.*?)[\)\]\}]$/);
     if (mixMatch) {
         let sym = mixMatch[1];
         let innerNums = mixMatch[2];
@@ -13171,10 +13192,12 @@ function formatDbaHouses(houseString, placedHouse, inheritedColor = null) {
         let color = inheritedColor || ((window._dbaColors && window._dbaColors[type]) ? window._dbaColors[type] : "#0bf4e6");
 
         let symHtml = `<span style="color:${color}; font-size:15px; font-weight:900;">${symName}</span>`;
+        let openB = sym.startsWith("DISP") ? "[" : (sym.startsWith("ASP") ? "{" : "(");
+        let closeB = sym.startsWith("DISP") ? "]" : (sym.startsWith("ASP") ? "}" : ")");
 
         // Pass the color down to the numbers inside the brackets
         let formattedNums = formatDbaHouses(innerNums, -1, color);
-        return `<span style="display:inline-flex; align-items:center; gap:2px; margin-left:4px;">${symHtml}<span style="color:${color}; font-weight:bold; font-size:16px;">(</span>${formattedNums}<span style="color:${color}; font-weight:bold; font-size:16px;">)</span></span>`;
+        return `<span style="display:inline-flex; align-items:center; gap:2px; margin-left:4px;">${symHtml}<span style="color:${color}; font-weight:bold; font-size:16px;">${openB}</span>${formattedNums}<span style="color:${color}; font-weight:bold; font-size:16px;">${closeB}</span></span>`;
     }
     
     let nums = str.split(",");
@@ -13435,6 +13458,25 @@ function getDbaPlanetData(targetPlanet, vNum) {
                             dispPlaced = ((parseInt(dispPlaced) - 1 - houseOffset + 12) % 12) + 1;
                         }
                         if (dispPlaced !== "-") t_lordships.unshift(parseInt(dispPlaced));
+
+                        // INCLUDE CUSPAL CONJUNCTIONS FOR THE DISPOSITOR ITSELF
+                        const cuspalConjToggle = document.getElementById("dbaCuspalConjToggle")?.checked;
+                        if (vNum === 1 && cuspalConjToggle && localCusps) {
+                            for(let c = 1; c <= 12; c++){
+                                let cuspDeg = isPlanetPivot ? (relativePivotDeg + (c - 1) * 30) % 360 : localCusps[c];
+                                if (cuspDeg !== undefined) {
+                                    let diff = Math.abs(dispDeg - parseFloat(cuspDeg));
+                                    if (diff > 180) diff = 360 - diff;
+                                    if (diff <= 3.3333) {
+                                        let relHouse = c;
+                                        if (!isPlanetPivot && houseOffset > 0) {
+                                            relHouse = ((c - 1 - houseOffset + 12) % 12) + 1;
+                                        }
+                                        t_lordships.push(relHouse);
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             } else {
@@ -13486,6 +13528,7 @@ function getDbaPlanetData(targetPlanet, vNum) {
         const dbaConjSymToggle = document.getElementById("dbaConjSymbolToggle")?.checked;
         const dbaConjMixToggle = document.getElementById("dbaConjMixToggle")?.checked;
         const dbaRaKeMixToggle = document.getElementById("dbaRaKeMixToggle")?.checked;
+        const dbaRaKeFullToggle = document.getElementById("dbaRaKeFullToggle")?.checked;
         
         // Always include all 9 planets so the 7 standard planets can detect Rahu & Ketu
         let allPlanetsList = ["Sy", "Ch", "Ma", "Bu", "Ju", "Ve", "Sa", "Ra", "Ke"];
@@ -13528,7 +13571,9 @@ function getDbaPlanetData(targetPlanet, vNum) {
                                 let otherBase = getPlanetBaseScript(otherP);
                                 let nums = [];
                                 if (otherBase.h !== "-" && otherBase.h != null) nums.push(otherBase.h);
-                                if (otherBase.l && otherBase.l.length > 0) nums.push(...otherBase.l);
+                                if (dbaRaKeFullToggle || (otherP !== "Ra" && otherP !== "Ke")) {
+                                    if (otherBase.l && otherBase.l.length > 0) nums.push(...otherBase.l);
+                                }
                                 if (nums.length > 0) {
                                     if (dbaRaKeMixToggle) {
                                         let symName = (otherP === "Ra" || otherP === "Ke") ? "R_" + otherP : otherP;
@@ -13544,7 +13589,7 @@ function getDbaPlanetData(targetPlanet, vNum) {
                                 let otherBase = getPlanetBaseScript(otherP);
                                 let nums = [];
                                 if (otherBase.h !== "-" && otherBase.h != null) nums.push(otherBase.h);
-                                if (otherP !== "Ra" && otherP !== "Ke") {
+                                if (dbaRaKeFullToggle || (otherP !== "Ra" && otherP !== "Ke")) {
                                     if (otherBase.l && otherBase.l.length > 0) nums.push(...otherBase.l);
                                 }
                                 if (nums.length > 0) {
@@ -13681,7 +13726,11 @@ function getDbaPlanetData(targetPlanet, vNum) {
                             return !removeOccupiedToggle || (!isHeavilyOccupied || immuneHouses.has(h));
                         });
                         vGroup = [...new Set(vGroup)].sort((a,b) => a - b);
-                        if (vGroup.length > 0) mixStrings.push(`${item.name}(${vGroup.join(",")})`);
+                        if (vGroup.length > 0) {
+                            let openB = item.name.startsWith("DISP") ? "[" : (item.name.startsWith("ASP") ? "{" : "(");
+                            let closeB = item.name.startsWith("DISP") ? "]" : (item.name.startsWith("ASP") ? "}" : ")");
+                            mixStrings.push(`${item.name}${openB}${vGroup.join(",")}${closeB}`);
+                        }
                     });
                     if (mixStrings.length > 0) {
                         if (finalStr) finalStr += " + " + mixStrings.join(" + ");
@@ -13732,7 +13781,11 @@ function getDbaPlanetData(targetPlanet, vNum) {
                             return !removeOccupiedToggle || (!isHeavilyOccupied || immuneHouses.has(h));
                         });
                         vGroup = [...new Set(vGroup)].sort((a,b) => a - b);
-                        if (vGroup.length > 0) mixStrings.push(`${item.name}(${vGroup.join(",")})`);
+                        if (vGroup.length > 0) {
+                            let openB = item.name.startsWith("DISP") ? "[" : "(";
+                            let closeB = item.name.startsWith("DISP") ? "]" : ")";
+                            mixStrings.push(`${item.name}${openB}${vGroup.join(",")}${closeB}`);
+                        }
                     });
                     if (mixStrings.length > 0) {
                         if (finalStr) finalStr += " + " + mixStrings.join(" + ");
@@ -13780,7 +13833,11 @@ function getDbaPlanetData(targetPlanet, vNum) {
                             return !removeOccupiedToggle || (!isHeavilyOccupied || immuneHouses.has(h));
                         });
                         vGroup = [...new Set(vGroup)].sort((a,b) => a - b);
-                        if (vGroup.length > 0) mixStrings.push(`${item.name}(${vGroup.join(",")})`);
+                        if (vGroup.length > 0) {
+                            let openB = item.name.startsWith("DISP") ? "[" : (item.name.startsWith("ASP") ? "{" : "(");
+                            let closeB = item.name.startsWith("DISP") ? "]" : (item.name.startsWith("ASP") ? "}" : ")");
+                            mixStrings.push(`${item.name}${openB}${vGroup.join(",")}${closeB}`);
+                        }
                     });
                     if (mixStrings.length > 0) {
                         if (finalStr) finalStr += " + " + mixStrings.join(" + ");
@@ -13949,9 +14006,28 @@ function formatDbaBox(data, isHiddenText = false) {
     let pSubSubStarPlaced = data.subSubStar ? data.subSubStar.placed : -1;
 
     if (hideUntenanted) {
-        if (data.planet && data.planet.name && data.planet.name.includes("$")) { pStarHouses = ""; pStarPlaced = -1; }
-        if (data.sub && data.sub.name && data.sub.name.includes("$")) { pSubStarHouses = ""; pSubStarPlaced = -1; }
-        if (data.subSub && data.subSub.name && data.subSub.name.includes("$")) { pSubSubStarHouses = ""; pSubSubStarPlaced = -1; }
+        const getRaw = (name) => name ? name.replace("$", "").trim() : "";
+        
+        // PLANET LEVEL
+        let pName = getRaw(data.planet.name);
+        let pStarName = getRaw(data.star.name);
+        if (pName === pStarName || (data.planet && data.planet.name && data.planet.name.includes("$"))) { 
+            pStarHouses = ""; pStarPlaced = -1; 
+        }
+
+        // SUBLORD LEVEL
+        let sName = getRaw(data.sub.name);
+        let sStarName = getRaw(data.subStar ? data.subStar.name : "");
+        if (sName === sStarName || (data.sub && data.sub.name && data.sub.name.includes("$"))) { 
+            pSubStarHouses = ""; pSubStarPlaced = -1; 
+        }
+
+        // SUB-SUB LEVEL
+        let ssName = getRaw(data.subSub.name);
+        let ssStarName = getRaw(data.subSubStar ? data.subSubStar.name : "");
+        if (ssName === ssStarName || (data.subSub && data.subSub.name && data.subSub.name.includes("$"))) { 
+            pSubSubStarHouses = ""; pSubSubStarPlaced = -1; 
+        }
     }
 
     if (hideUntX) {
