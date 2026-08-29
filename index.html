@@ -2286,17 +2286,31 @@ function renderVedicAspectsTab() {
     /* ====================================================
        PRE-CALCULATE ASPECTS RECEIVED FOR APPEND LOGIC
     ==================================================== */
+    const modeKP_Aspects = document.getElementById("modeKP")?.checked;
+    
+    function getEffectivePlacement(p) {
+        if (modeKP_Aspects) {
+            let h = window._shodaBhava[v]?.[p];
+            return (h && h !== "-") ? parseInt(h) : "-";
+        } else {
+            let pSign = window._shodaRashi[v]?.[p];
+            let ascSign = window._pureAscSigns?.[v];
+            if (!pSign || pSign === "-" || ascSign === undefined) return "-";
+            return ((parseInt(pSign) - 1 - ascSign + 12) % 12) + 1;
+        }
+    }
+
     const aspectsReceived = {};
     planets.forEach(p => aspectsReceived[p] = []);
     
     planets.forEach(pFrom => {
-        const fromH = getVisualHouse(visualPMap[pFrom]);
+        const fromH = getEffectivePlacement(pFrom);
         if (fromH === "-") return;
         let aspects = getDynamicVedicAspects(pFrom, true); 
         
         planets.forEach(pTo => {
             if (pFrom === pTo) return;
-            const toH = getVisualHouse(visualPMap[pTo]);
+            const toH = getEffectivePlacement(pTo);
             if (toH === "-") return;
             
             let dist = (toH - fromH + 12) % 12 + 1;
@@ -2380,21 +2394,15 @@ function renderVedicAspectsTab() {
                         
                         if (shouldApplyAspects && aspectsReceived[p.n]) {
                             aspectsReceived[p.n].forEach(pAspecting => {
-                                // Extract the placed house of the aspecting planet
-                                let aspPlacedHouse = getVisualHouse(visualPMap[pAspecting]);
-                                
-                                // Extract the lordship of the aspecting planet
-                                let aspLordsArr = getPlanetLordshipLocal(pAspecting).filter(x => x !== "-" && x != null);
-                                let aspUniqueLords = [...new Set(aspLordsArr)].sort((a, b) => Number(a) - Number(b));
-                                
-                                // Combine Placed House and Lordship (e.g., 3-7,10)
-                                let aspStr = aspUniqueLords.length > 0 ? `${aspPlacedHouse}-${aspUniqueLords.join(",")}` : `${aspPlacedHouse}`;
-                                aspectStrings.push(aspStr);
+                                let aspName = modeKN ? (planetNameMapKN[pAspecting] || pAspecting) : pAspecting;
+                                aspectStrings.push(aspName);
                             });
                         }
                         
-                        // Join multiple aspecting lords with " + " to match Nadi style grouping
-                        let aspectSuffix = aspectStrings.length > 0 ? " + " + aspectStrings.join(" + ") : "";
+                        let combinedName = name;
+                        if (aspectStrings.length > 0) {
+                            combinedName = `${name} + ${aspectStrings.join(" + ")}`;
+                        }
 
                         let displayStr = "";
                         const mins = Math.floor((p.d * 60) % 60).toString().padStart(2, '0'); 
@@ -2404,7 +2412,7 @@ function renderVedicAspectsTab() {
                             let uniqueLords = [...new Set(lordshipsArr)].sort((a, b) => Number(a) - Number(b));
                             let lordStr = uniqueLords.length > 0 ? `${placedHouse}-${uniqueLords.join(",")}` : `${placedHouse}`;
                             
-                            displayStr = `${name} ${Math.floor(p.d)}&deg;${mins}&prime; - ${lordStr}${aspectSuffix}`;
+                            displayStr = `${combinedName} ${Math.floor(p.d)}&deg;${mins}&prime; - ${lordStr}`;
                         } else {
                             const kp = kpData[p.n] || {};
                             const extMap = { ...planetNameMapKN, "Jupiter": "ಗುರು", "Budha": "ಬುಧ", "Venus": "ಶುಕ್ರ", "Saturn": "ಶನಿ", "Mars": "ಕುಜ", "Moon": "ಚಂದ್ರ", "Sun": "ರವಿ", "Rahu": "ರಾಹು", "Ketu": "ಕೇತು", "Sy": "ರವಿ", "Ch": "ಚಂದ್ರ", "Ma": "ಕುಜ", "Bu": "ಬುಧ", "Ju": "ಗುರು", "Ve": "ಶುಕ್ರ", "Sa": "ಶನಿ", "Ra": "ರಾಹು", "Ke": "ಕೇತು" };
@@ -2413,7 +2421,7 @@ function renderVedicAspectsTab() {
                             const subName = modeKN ? (extMap[kp.sub] || kp.sub || "-") : (kp.sub || "-");
                             const subsubName = modeKN ? (extMap[kp.subsub] || kp.subsub || "-") : (kp.subsub || "-");
                             
-                            displayStr = `${name} ${Math.floor(p.d)}&deg;${mins}&prime; | ${starName} / ${subName} / ${subsubName}${aspectSuffix}`;
+                            displayStr = `${combinedName} ${Math.floor(p.d)}&deg;${mins}&prime; | ${starName} / ${subName} / ${subsubName}`;
                         }
 
                         h.innerHTML += `<div class="${lineClass}" style="font-size:15px; color:#fff; white-space:normal;">${displayStr}</div>`;
@@ -2464,7 +2472,7 @@ function renderVedicAspectsTab() {
         let firstCell = r.insertCell();
         firstCell.innerHTML = modeKN ? (planetNameMapKN[pFrom] || pFrom) : pFrom;
 
-        const fromH = getVisualHouse(visualPMap[pFrom]);
+        const fromH = getEffectivePlacement(pFrom);
         let aspects = getDynamicVedicAspects(pFrom, true); 
 
         planets.forEach(pTo => {
@@ -2473,7 +2481,7 @@ function renderVedicAspectsTab() {
                 cell.textContent = "---";
                 cell.style.color = "#555";
             } else {
-                const toH = getVisualHouse(visualPMap[pTo]);
+                const toH = getEffectivePlacement(pTo);
                 if (fromH !== "-" && toH !== "-") {
                     let dist = (toH - fromH + 12) % 12 + 1;
                     if (aspects.includes(dist)) {
@@ -2504,7 +2512,7 @@ function renderVedicAspectsTab() {
         let firstCell = r.insertCell();
         firstCell.innerHTML = modeKN ? (planetNameMapKN[pFrom] || pFrom) : pFrom;
 
-        const fromH = getVisualHouse(visualPMap[pFrom]);
+        const fromH = getEffectivePlacement(pFrom);
         let aspects = getDynamicVedicAspects(pFrom, false); 
         let shortName = modeKN ? (planetNameMapKN[pFrom] || pFrom) : (VEDIC_SHORT_NAMES[pFrom] || pFrom);
 
@@ -12150,6 +12158,9 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
             <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#c084fc; font-weight:bold; font-size:15px;">
                 <input type="checkbox" id="dbaHideSubSubToggle" onchange="handleDbaHideToggles('subsub')"> Hide Sub-Sub
             </label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#ffffff; font-weight:bold; font-size:15px;">
+                <input type="checkbox" id="dbaUnderlineToggle" onchange="renderDbaMixer()" checked> Underline
+            </label>
         </div>
 
         <!-- Checkboxes Bottom Row (Ra/Ke Rules + Modes) -->
@@ -12166,6 +12177,16 @@ function buildVarshaphalaKundaliHTML(chartData, title, forcedAscIndex, dashaTabl
             </label>
             <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#0bf4e6; font-weight:bold; font-size:15px;">
                 <input type="checkbox" id="dbaConjMixToggle" onchange="handleConjToggles('mix')" checked> Conj Mix
+            </label>
+            
+            <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#eab308; font-weight:bold; font-size:15px;">
+                <input type="checkbox" id="dbaAspToggle" onchange="handleAspToggles('num')"> Asp Num
+            </label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#eab308; font-weight:bold; font-size:15px;">
+                <input type="checkbox" id="dbaAspSymbolToggle" onchange="handleAspToggles('symbol')"> Asp Symbol
+            </label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#eab308; font-weight:bold; font-size:15px;">
+                <input type="checkbox" id="dbaAspMixToggle" onchange="handleAspToggles('mix')"> Asp Mix
             </label>
             <label style="cursor:pointer; display:flex; align-items:center; gap:6px; color:#ff9933; font-weight:bold; font-size:15px;">
                 <input type="checkbox" id="dbaRaKeDispToggle" onchange="renderDbaMixer()" checked> RaKe Dispositor
@@ -12444,7 +12465,7 @@ const UNIFIED_TEMPLATES = {
   manual: { name: "Manual Entry", pos: [], support: [], neg: [], note: "" },
   even_odd: { name: "Even-Odd", pos: [2, 4, 6, 8, 10, 12], support: [8, 12], neg: [1, 3, 5, 7, 9, 11], note: "" },
   education: { name: "Education", pos: [4, 5, 9, 11], support: [1, 2, 7, 10], neg: [3, 6, 8, 12], note: "Karaka: Jupiter, Budha" },
-  Job: { name: "Job with Monthly Salary", pos: [2, 6, 10], support: [3, 4, 7, 11], neg: [], note: "" },
+  Job: { name: "Job with Monthly Salary", pos: [6, 10], support: [2, 4, 7, 11], neg: [], note: "" },
   career: { name: "Profession & Business", pos: [2, 6, 10, 11], support: [4, 7], neg: [5, 8, 12], note: "Karaka: Saturn" },
   job_change: { name: "Job Change", pos: [3, 5, 6, 9], support: [], neg: [], note: "" },
   transfer: { name: "Transfer", pos: [3, 10, 12], support: [], neg: [], note: "" },
@@ -12800,6 +12821,24 @@ function handleConjToggles(clicked) {
     const numToggle = document.getElementById("dbaConjToggle");
     const symToggle = document.getElementById("dbaConjSymbolToggle");
     const mixToggle = document.getElementById("dbaConjMixToggle");
+    
+    if (clicked === 'num' && numToggle && numToggle.checked) {
+        if (symToggle) symToggle.checked = false;
+        if (mixToggle) mixToggle.checked = false;
+    } else if (clicked === 'symbol' && symToggle && symToggle.checked) {
+        if (numToggle) numToggle.checked = false;
+        if (mixToggle) mixToggle.checked = false;
+    } else if (clicked === 'mix' && mixToggle && mixToggle.checked) {
+        if (numToggle) numToggle.checked = false;
+        if (symToggle) symToggle.checked = false;
+    }
+    if (typeof renderDbaMixer === "function") renderDbaMixer();
+}
+
+function handleAspToggles(clicked) {
+    const numToggle = document.getElementById("dbaAspToggle");
+    const symToggle = document.getElementById("dbaAspSymbolToggle");
+    const mixToggle = document.getElementById("dbaAspMixToggle");
     
     if (clicked === 'num' && numToggle && numToggle.checked) {
         if (symToggle) symToggle.checked = false;
@@ -13206,6 +13245,10 @@ function formatDbaHouses(houseString, placedHouse, inheritedColor = null) {
     let formatted = nums.map(n => {
         let rawStr = n.trim();
         
+        // NEW: Detect and strip the underline flag
+        let isUnderlined = rawStr.includes("_U");
+        rawStr = rawStr.replace("_U", "");
+        
         let type = "planet";
         let symNameRaw = rawStr;
         if (rawStr.includes("|")) {
@@ -13235,7 +13278,13 @@ function formatDbaHouses(houseString, placedHouse, inheritedColor = null) {
         let padding = isPlaced ? "2px 7px" : "2px 4px";
         let minW = isPlaced ? "20px" : "auto";
         
-        let baseStyle = `padding:${padding}; border-radius:${borderRadius}; display:inline-flex; align-items:center; justify-content:center; text-align:center; font-size:15px; font-weight:bold; margin:2px; min-width:${minW}; box-sizing:border-box;`;
+        const underlineEnabled = document.getElementById("dbaUnderlineToggle")?.checked;
+        
+        // NEW: Apply text-decoration if flagged and toggle is checked
+        let textDec = (isUnderlined && underlineEnabled) ? "underline" : "none";
+        let textOffset = (isUnderlined && underlineEnabled) ? "3px" : "auto";
+        
+        let baseStyle = `padding:${padding}; border-radius:${borderRadius}; display:inline-flex; align-items:center; justify-content:center; text-align:center; font-size:15px; font-weight:bold; margin:2px; min-width:${minW}; box-sizing:border-box; text-decoration:${textDec}; text-underline-offset:${textOffset};`;
 
         // RESTORED: Selected numbers (Pos/Sup/Neg) get their exact backgrounds and borders back
         if (window._dbaPosSet.has(numInt)) return `<span style="background:#004d00; color:#39FF14; border: 2px solid #39FF14 !important; box-shadow: 0 0 4px #39FF14; ${baseStyle}">${numInt}</span>`;
@@ -13518,15 +13567,21 @@ function getDbaPlanetData(targetPlanet, vNum) {
 		
 		
 		
-		// --- DYNAMIC CONJUNCTION MIXER ---
+		// --- DYNAMIC CONJUNCTION & ASPECT MIXER ---
         let conjGroups = []; 
         let conjNames = [];  
         let conjMixList = []; 
+        let aspGroups = [];
+        let aspNames = [];
+        let aspMixList = [];
         let rakeSymbolNames = []; 
         let rakeMixList = []; 
         const dbaConjNumToggle = document.getElementById("dbaConjToggle")?.checked;
         const dbaConjSymToggle = document.getElementById("dbaConjSymbolToggle")?.checked;
         const dbaConjMixToggle = document.getElementById("dbaConjMixToggle")?.checked;
+        const dbaAspNumToggle = document.getElementById("dbaAspToggle")?.checked;
+        const dbaAspSymToggle = document.getElementById("dbaAspSymbolToggle")?.checked;
+        const dbaAspMixToggle = document.getElementById("dbaAspMixToggle")?.checked;
         const dbaRaKeMixToggle = document.getElementById("dbaRaKeMixToggle")?.checked;
         const dbaRaKeFullToggle = document.getElementById("dbaRaKeFullToggle")?.checked;
         
@@ -13565,10 +13620,12 @@ function getDbaPlanetData(targetPlanet, vNum) {
                             }
                         }
 
+                        // FETCH ONCE FOR BOTH CONJUNCTION AND ASPECT
+                        let otherBase = getPlanetBaseScript(otherP);
+                        
                         if (isConj) {
                             if (targetPlanet === "Ra" || targetPlanet === "Ke") {
                                 rakeSymbolNames.push("CONJ|" + otherP);
-                                let otherBase = getPlanetBaseScript(otherP);
                                 let nums = [];
                                 if (otherBase.h !== "-" && otherBase.h != null) nums.push(otherBase.h);
                                 if (dbaRaKeFullToggle || (otherP !== "Ra" && otherP !== "Ke")) {
@@ -13577,7 +13634,7 @@ function getDbaPlanetData(targetPlanet, vNum) {
                                 if (nums.length > 0) {
                                     if (dbaRaKeMixToggle) {
                                         let symName = (otherP === "Ra" || otherP === "Ke") ? "R_" + otherP : otherP;
-                                        rakeMixList.push({ name: "CONJ|" + symName, nums: nums });
+                                        rakeMixList.push({ name: "CONJ|" + symName, nums: nums, placed: otherBase.h });
                                     } else {
                                         conjGroups.push(nums);
                                     }
@@ -13586,7 +13643,6 @@ function getDbaPlanetData(targetPlanet, vNum) {
                                 let symName = (otherP === "Ra" || otherP === "Ke") ? "R_" + otherP : otherP;
                                 conjNames.push("CONJ|" + symName); 
                                 
-                                let otherBase = getPlanetBaseScript(otherP);
                                 let nums = [];
                                 if (otherBase.h !== "-" && otherBase.h != null) nums.push(otherBase.h);
                                 if (dbaRaKeFullToggle || (otherP !== "Ra" && otherP !== "Ke")) {
@@ -13594,8 +13650,45 @@ function getDbaPlanetData(targetPlanet, vNum) {
                                 }
                                 if (nums.length > 0) {
                                     conjGroups.push(nums);
-                                    conjMixList.push({ name: "CONJ|" + symName, nums: nums });
+                                    conjMixList.push({ name: "CONJ|" + symName, nums: nums, placed: otherBase.h });
                                 }
+                            }
+                        }
+
+                        // --- ONE-WAY ASPECT LOGIC FOR 7 PLANETS ---
+                        let aspectApplies = false;
+                        if (targetPlanet !== "Ra" && targetPlanet !== "Ke" && otherP !== "Ra" && otherP !== "Ke") {
+                            
+                            // Check ONLY if 'otherP' is aspecting 'targetPlanet'
+                            let dist;
+                            if (isKpActive) {
+                                let targetH = parseInt(placedHouse);
+                                let otherH = parseInt(otherBase.h);
+                                if (!isNaN(targetH) && !isNaN(otherH)) {
+                                    dist = ((targetH - otherH + 12) % 12) + 1;
+                                } else {
+                                    dist = (Math.floor(pDeg / 30) - Math.floor(otherDeg / 30) + 12) % 12 + 1;
+                                }
+                            } else {
+                                dist = (Math.floor(pDeg / 30) - Math.floor(otherDeg / 30) + 12) % 12 + 1;
+                            }
+                            
+                            if (otherP === "Sa" && [3, 7, 10].includes(dist)) aspectApplies = true;
+                            else if (otherP === "Ma" && [4, 7, 8].includes(dist)) aspectApplies = true;
+                            else if (otherP === "Ju" && [5, 7, 9].includes(dist)) aspectApplies = true;
+                            else if (["Sy", "Ch", "Bu", "Ve"].includes(otherP) && dist === 7) aspectApplies = true;
+                        }
+
+                        if (aspectApplies && (dbaAspNumToggle || dbaAspSymToggle || dbaAspMixToggle)) {
+                            aspNames.push("ASP|" + otherP); 
+                            
+                            let nums = [];
+                            if (otherBase.h !== "-" && otherBase.h != null) nums.push(otherBase.h);
+                            if (otherBase.l && otherBase.l.length > 0) nums.push(...otherBase.l);
+                            
+                            if (nums.length > 0) {
+                                aspGroups.push(nums);
+                                aspMixList.push({ name: "ASP|" + otherP, nums: nums, placed: otherBase.h });
                             }
                         }
                     }
@@ -13615,7 +13708,8 @@ function getDbaPlanetData(targetPlanet, vNum) {
         let rakeGroups = [];
         if (targetPlanet === "Ra" || targetPlanet === "Ke") {
             if (dbaRaKeMixToggle && base.disp && base.l && base.l.length > 0) {
-                rakeMixList.push({ name: "DISP|" + base.disp, nums: base.l });
+                let dispPlaced = base.l[0]; // Guaranteed to be placement
+                rakeMixList.push({ name: "DISP|" + base.disp, nums: base.l, placed: dispPlaced });
             } else {
                 rakeGroups.push(base.l); 
             }
@@ -13631,7 +13725,24 @@ function getDbaPlanetData(targetPlanet, vNum) {
                     let apDeg = getDbaAbsoluteLongitude(ap, vNum);
                     if (apDeg === -1) return;
                     
-                    let dist = (Math.floor(tpDeg / 30) - Math.floor(apDeg / 30) + 12) % 12 + 1;
+                    let dist;
+                    let apScript = getPlanetBaseScript(ap);
+                    const rakeAspHouseToggle = document.getElementById("dbaRaKeAspHouseToggle")?.checked;
+                    
+                    // HOUSE BASED: If KP mode is active OR House Based toggle is checked
+                    if (isKpActive || rakeAspHouseToggle) {
+                        let targetH = parseInt(placedHouse); // Rahu/Ketu's house
+                        let apH = parseInt(apScript.h);      // Aspecting planet's house
+                        
+                        if (!isNaN(targetH) && !isNaN(apH)) {
+                            dist = ((targetH - apH + 12) % 12) + 1;
+                        } else {
+                            dist = (Math.floor(tpDeg / 30) - Math.floor(apDeg / 30) + 12) % 12 + 1;
+                        }
+                    } else {
+                        // SIGN BASED: Strictly sign to sign
+                        dist = (Math.floor(tpDeg / 30) - Math.floor(apDeg / 30) + 12) % 12 + 1;
+                    }
                     
                     let specialAspects = [];
                     if (ap === "Ma") specialAspects = [4, 8];
@@ -13657,7 +13768,7 @@ function getDbaPlanetData(targetPlanet, vNum) {
                         nums.push(...apScript.l);
 
                         if (dbaRaKeMixToggle) {
-                            if (nums.length > 0) rakeMixList.push({ name: "ASP|" + ap, nums: nums });
+                            if (nums.length > 0) rakeMixList.push({ name: "ASP|" + ap, nums: nums, placed: apScript.h });
                         } else if (dbaRaKeSymbolToggle) {
                             rakeSymbolNames.push("ASP|" + ap);
                         } else {
@@ -13706,30 +13817,22 @@ function getDbaPlanetData(targetPlanet, vNum) {
                 allNums = [...new Set(allNums)].sort((a, b) => a - b);
                 finalStr = allNums.join(",");
 
-                if (dbaRaKeSymbolToggle && rakeSymbolNames.length > 0) {
-                    let uniqueNames = [...new Set(rakeSymbolNames)].map(n => {
-                        if (n.includes("|")) {
-                            let parts = n.split("|");
-                            return parts[0] + "|R_" + parts[1];
-                        }
-                        return "R_" + n;
-                    });
-                    if (finalStr) finalStr += " + " + uniqueNames.join(",");
-                    else finalStr = uniqueNames.join(",");
-                }
-
                 if (dbaRaKeMixToggle && rakeMixList.length > 0) {
                     let mixStrings = [];
                     rakeMixList.forEach(item => {
                         let vGroup = item.nums.filter(h => {
-                            let isHeavilyOccupied = (houseCounts[h] >= 2);
-                            return !removeOccupiedToggle || (!isHeavilyOccupied || immuneHouses.has(h));
+                            let hInt = parseInt(h);
+                            let isHeavilyOccupied = (houseCounts[hInt] >= 2);
+                            return !removeOccupiedToggle || (!isHeavilyOccupied || immuneHouses.has(hInt));
                         });
-                        vGroup = [...new Set(vGroup)].sort((a,b) => a - b);
-                        if (vGroup.length > 0) {
+                        vGroup = [...new Set(vGroup)].sort((a,b) => parseInt(a) - parseInt(b));
+                        
+                        let mappedGroup = vGroup.map(h => parseInt(h) === parseInt(item.placed) ? h + "_U" : h);
+
+                        if (mappedGroup.length > 0) {
                             let openB = item.name.startsWith("DISP") ? "[" : (item.name.startsWith("ASP") ? "{" : "(");
                             let closeB = item.name.startsWith("DISP") ? "]" : (item.name.startsWith("ASP") ? "}" : ")");
-                            mixStrings.push(`${item.name}${openB}${vGroup.join(",")}${closeB}`);
+                            mixStrings.push(`${item.name}${openB}${mappedGroup.join(",")}${closeB}`);
                         }
                     });
                     if (mixStrings.length > 0) {
@@ -13767,24 +13870,22 @@ function getDbaPlanetData(targetPlanet, vNum) {
                     if (!finalStr && !isNaN(placedH)) finalStr = placedHouse;
                 }
 
-                if (dbaRaKeSymbolToggle && rakeSymbolNames.length > 0) {
-                    let uniqueNames = [...new Set(rakeSymbolNames)].map(n => "R_" + n);
-                    if (finalStr) finalStr += " + " + uniqueNames.join(",");
-                    else finalStr = uniqueNames.join(",");
-                }
-
                 if (dbaRaKeMixToggle && rakeMixList.length > 0) {
                     let mixStrings = [];
                     rakeMixList.forEach(item => {
                         let vGroup = item.nums.filter(h => {
-                            let isHeavilyOccupied = (houseCounts[h] >= 2);
-                            return !removeOccupiedToggle || (!isHeavilyOccupied || immuneHouses.has(h));
+                            let hInt = parseInt(h);
+                            let isHeavilyOccupied = (houseCounts[hInt] >= 2);
+                            return !removeOccupiedToggle || (!isHeavilyOccupied || immuneHouses.has(hInt));
                         });
-                        vGroup = [...new Set(vGroup)].sort((a,b) => a - b);
-                        if (vGroup.length > 0) {
+                        vGroup = [...new Set(vGroup)].sort((a,b) => parseInt(a) - parseInt(b));
+
+                        let mappedGroup = vGroup.map(h => parseInt(h) === parseInt(item.placed) ? h + "_U" : h);
+
+                        if (mappedGroup.length > 0) {
                             let openB = item.name.startsWith("DISP") ? "[" : "(";
                             let closeB = item.name.startsWith("DISP") ? "]" : ")";
-                            mixStrings.push(`${item.name}${openB}${vGroup.join(",")}${closeB}`);
+                            mixStrings.push(`${item.name}${openB}${mappedGroup.join(",")}${closeB}`);
                         }
                     });
                     if (mixStrings.length > 0) {
@@ -13816,28 +13917,57 @@ function getDbaPlanetData(targetPlanet, vNum) {
                     });
                 }
 
+                if (dbaAspNumToggle) {
+                    aspGroups.forEach(group => {
+                        group.forEach(h => {
+                            let isHeavilyOccupied = (houseCounts[h] >= 2);
+                            if (!removeOccupiedToggle || (!isHeavilyOccupied || immuneHouses.has(h))) {
+                                allNums.push(parseInt(h));
+                            }
+                        });
+                    });
+                }
+
                 allNums = [...new Set(allNums)].sort((a, b) => a - b);
                 finalStr = allNums.join(",");
-
-                if (dbaConjSymToggle && conjNames.length > 0) {
-                    let uniqueNames = [...new Set(conjNames)];
-                    if (finalStr) finalStr += " + " + uniqueNames.join(",");
-                    else finalStr = uniqueNames.join(",");
-                }
 
                 if (dbaConjMixToggle && conjMixList.length > 0) {
                     let mixStrings = [];
                     conjMixList.forEach(item => {
                         let vGroup = item.nums.filter(h => {
-                            let isHeavilyOccupied = (houseCounts[h] >= 2);
-                            return !removeOccupiedToggle || (!isHeavilyOccupied || immuneHouses.has(h));
+                            let hInt = parseInt(h);
+                            let isHeavilyOccupied = (houseCounts[hInt] >= 2);
+                            return !removeOccupiedToggle || (!isHeavilyOccupied || immuneHouses.has(hInt));
                         });
-                        vGroup = [...new Set(vGroup)].sort((a,b) => a - b);
-                        if (vGroup.length > 0) {
+                        vGroup = [...new Set(vGroup)].sort((a,b) => parseInt(a) - parseInt(b));
+                        
+                        let mappedGroup = vGroup.map(h => parseInt(h) === parseInt(item.placed) ? h + "_U" : h);
+
+                        if (mappedGroup.length > 0) {
                             let openB = item.name.startsWith("DISP") ? "[" : (item.name.startsWith("ASP") ? "{" : "(");
                             let closeB = item.name.startsWith("DISP") ? "]" : (item.name.startsWith("ASP") ? "}" : ")");
-                            mixStrings.push(`${item.name}${openB}${vGroup.join(",")}${closeB}`);
+                            mixStrings.push(`${item.name}${openB}${mappedGroup.join(",")}${closeB}`);
                         }
+                    });
+                    if (mixStrings.length > 0) {
+                        if (finalStr) finalStr += " + " + mixStrings.join(" + ");
+                        else finalStr = mixStrings.join(" + ");
+                    }
+                }
+                
+                if (dbaAspMixToggle && aspMixList.length > 0) {
+                    let mixStrings = [];
+                    aspMixList.forEach(item => {
+                        let vGroup = item.nums.filter(h => {
+                            let hInt = parseInt(h);
+                            let isHeavilyOccupied = (houseCounts[hInt] >= 2);
+                            return !removeOccupiedToggle || (!isHeavilyOccupied || immuneHouses.has(hInt));
+                        });
+                        vGroup = [...new Set(vGroup)].sort((a,b) => parseInt(a) - parseInt(b));
+                        
+                        let mappedGroup = vGroup.map(h => parseInt(h) === parseInt(item.placed) ? h + "_U" : h);
+
+                        if (mappedGroup.length > 0) mixStrings.push(`${item.name}{${mappedGroup.join(",")}}`);
                     });
                     if (mixStrings.length > 0) {
                         if (finalStr) finalStr += " + " + mixStrings.join(" + ");
@@ -13882,11 +14012,21 @@ function getDbaPlanetData(targetPlanet, vNum) {
                     }
                 } 
                 
-                if (dbaConjSymToggle) {
-                    if (conjNames.length > 0) {
-                        let uniqueNames = [...new Set(conjNames)];
-                        if (finalStr) finalStr += " + " + uniqueNames.join(",");
-                        else finalStr = uniqueNames.join(",");
+                if (dbaAspNumToggle) {
+                    if (aspGroups.length > 0) {
+                        let finalAspGroups = [];
+                        aspGroups.forEach(group => {
+                            let vGroup = group.filter(h => {
+                                let isHeavilyOccupied = (houseCounts[h] >= 2);
+                                return !removeOccupiedToggle || (!isHeavilyOccupied || immuneHouses.has(h));
+                            });
+                            vGroup = [...new Set(vGroup)].sort((a,b) => a - b);
+                            if (vGroup.length > 0) finalAspGroups.push(vGroup.join(","));
+                        });
+                        if (finalAspGroups.length > 0) {
+                            if (finalStr) finalStr += " + " + finalAspGroups.join(" + ");
+                            else finalStr = finalAspGroups.join(" + ");
+                        }
                     }
                 }
 
@@ -13895,11 +14035,37 @@ function getDbaPlanetData(targetPlanet, vNum) {
                         let mixStrings = [];
                         conjMixList.forEach(item => {
                             let vGroup = item.nums.filter(h => {
-                                let isHeavilyOccupied = (houseCounts[h] >= 2);
-                                return !removeOccupiedToggle || (!isHeavilyOccupied || immuneHouses.has(h));
+                                let hInt = parseInt(h);
+                                let isHeavilyOccupied = (houseCounts[hInt] >= 2);
+                                return !removeOccupiedToggle || (!isHeavilyOccupied || immuneHouses.has(hInt));
                             });
-                            vGroup = [...new Set(vGroup)].sort((a,b) => a - b);
-                            if (vGroup.length > 0) mixStrings.push(`${item.name}(${vGroup.join(",")})`);
+                            vGroup = [...new Set(vGroup)].sort((a,b) => parseInt(a) - parseInt(b));
+                            
+                            let mappedGroup = vGroup.map(h => parseInt(h) === parseInt(item.placed) ? h + "_U" : h);
+
+                            if (mappedGroup.length > 0) mixStrings.push(`${item.name}(${mappedGroup.join(",")})`);
+                        });
+                        if (mixStrings.length > 0) {
+                            if (finalStr) finalStr += " + " + mixStrings.join(" + ");
+                            else finalStr = mixStrings.join(" + ");
+                        }
+                    }
+                }
+                
+                if (dbaAspMixToggle) {
+                    if (aspMixList.length > 0) {
+                        let mixStrings = [];
+                        aspMixList.forEach(item => {
+                            let vGroup = item.nums.filter(h => {
+                                let hInt = parseInt(h);
+                                let isHeavilyOccupied = (houseCounts[hInt] >= 2);
+                                return !removeOccupiedToggle || (!isHeavilyOccupied || immuneHouses.has(hInt));
+                            });
+                            vGroup = [...new Set(vGroup)].sort((a,b) => parseInt(a) - parseInt(b));
+                            
+                            let mappedGroup = vGroup.map(h => parseInt(h) === parseInt(item.placed) ? h + "_U" : h);
+
+                            if (mappedGroup.length > 0) mixStrings.push(`${item.name}{${mappedGroup.join(",")}}`);
                         });
                         if (mixStrings.length > 0) {
                             if (finalStr) finalStr += " + " + mixStrings.join(" + ");
@@ -13922,9 +14088,50 @@ function getDbaPlanetData(targetPlanet, vNum) {
         isUntenanted = !tented;
 
         let nameDisp = DBA_NAMES[targetPlanet] || targetPlanet;
+        
+        
+		
+		
+		
+		let appendedSymbols = [];
+        
+        if (targetPlanet === "Ra" || targetPlanet === "Ke") {
+            const dbaRaKeSymbolToggle = document.getElementById("dbaRaKeSymbolToggle")?.checked;
+            if (dbaRaKeSymbolToggle && rakeSymbolNames.length > 0) {
+                // Keep the prefix so formatDbaHouses applies the correct custom color
+                appendedSymbols.push(...rakeSymbolNames);
+            }
+        } else {
+            const dbaConjSymToggle = document.getElementById("dbaConjSymbolToggle")?.checked;
+            const dbaAspSymToggle = document.getElementById("dbaAspSymbolToggle")?.checked;
+            
+            if (dbaConjSymToggle && conjNames.length > 0) {
+                appendedSymbols.push(...conjNames);
+            }
+            if (dbaAspSymToggle && aspNames.length > 0) {
+                appendedSymbols.push(...aspNames);
+            }
+        }
+        
+        if (appendedSymbols.length > 0) {
+            let uniqueSymbols = [...new Set(appendedSymbols)];
+            
+            // FIX: Append to finalStr (houses column), NOT nameDisp (planet column)
+            if (finalStr && finalStr !== "-") {
+                finalStr += " + " + uniqueSymbols.join(" + ");
+            } else {
+                finalStr = uniqueSymbols.join(" + ");
+            }
+        }
+
+        // Untenanted symbol stays with the planet name
         if (isUntenanted) nameDisp += " $";
 
         return { name: nameDisp, houses: finalStr || "-", placed: showPlaced ? placedH : -1 };
+		
+		
+		
+		
     } catch(err) {
         console.error("Nadi DBA Fetch error:", err);
         return { name: targetPlanet, houses: "-", placed: -1 };
