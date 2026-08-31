@@ -13655,9 +13655,9 @@ function getDbaPlanetData(targetPlanet, vNum) {
                             }
                         }
 
-                        // --- ONE-WAY ASPECT LOGIC FOR 7 PLANETS ---
+                        // --- ONE-WAY ASPECT LOGIC INCLUDING RAHU & KETU ---
                         let aspectApplies = false;
-                        if (targetPlanet !== "Ra" && targetPlanet !== "Ke" && otherP !== "Ra" && otherP !== "Ke") {
+                        if (targetPlanet !== "Ra" && targetPlanet !== "Ke") {
                             
                             // Check ONLY if 'otherP' is aspecting 'targetPlanet'
                             let dist;
@@ -13676,6 +13676,7 @@ function getDbaPlanetData(targetPlanet, vNum) {
                             if (otherP === "Sa" && [3, 7, 10].includes(dist)) aspectApplies = true;
                             else if (otherP === "Ma" && [4, 7, 8].includes(dist)) aspectApplies = true;
                             else if (otherP === "Ju" && [5, 7, 9].includes(dist)) aspectApplies = true;
+                            else if ((otherP === "Ra" || otherP === "Ke") && [5, 7, 9].includes(dist)) aspectApplies = true;
                             else if (["Sy", "Ch", "Bu", "Ve"].includes(otherP) && dist === 7) aspectApplies = true;
                         }
 
