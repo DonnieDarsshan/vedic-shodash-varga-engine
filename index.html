@@ -14214,27 +14214,22 @@ function formatDbaBox(data, isHiddenText = false) {
     let pSubSubStarPlaced = data.subSubStar ? data.subSubStar.placed : -1;
 
     if (hideUntenanted) {
-        const getRaw = (name) => name ? name.replace("$", "").trim() : "";
-        
-        // PLANET LEVEL
-        let pName = getRaw(data.planet.name);
-        let pStarName = getRaw(data.star.name);
-        if (pName === pStarName || (data.planet && data.planet.name && data.planet.name.includes("$"))) { 
-            pStarHouses = ""; pStarPlaced = -1; 
+        // PLANET LEVEL: Remove planet if no $, starlord is always kept untouched
+        if (data.planet && data.planet.name && !data.planet.name.includes("$")) {
+            pHouses = ""; 
+            pPlaced = -1;
         }
 
-        // SUBLORD LEVEL
-        let sName = getRaw(data.sub.name);
-        let sStarName = getRaw(data.subStar ? data.subStar.name : "");
-        if (sName === sStarName || (data.sub && data.sub.name && data.sub.name.includes("$"))) { 
-            pSubStarHouses = ""; pSubStarPlaced = -1; 
+        // SUBLORD LEVEL: Remove sublord if no $, star of sublord is always kept untouched
+        if (data.sub && data.sub.name && !data.sub.name.includes("$")) {
+            sHouses = ""; 
+            sPlaced = -1;
         }
 
-        // SUB-SUB LEVEL
-        let ssName = getRaw(data.subSub.name);
-        let ssStarName = getRaw(data.subSubStar ? data.subSubStar.name : "");
-        if (ssName === ssStarName || (data.subSub && data.subSub.name && data.subSub.name.includes("$"))) { 
-            pSubSubStarHouses = ""; pSubSubStarPlaced = -1; 
+        // SUB-SUB LEVEL: Remove sub-sub if no $, star of sub-sub is always kept untouched
+        if (data.subSub && data.subSub.name && !data.subSub.name.includes("$")) {
+            ssHouses = ""; 
+            ssPlaced = -1;
         }
     }
 
