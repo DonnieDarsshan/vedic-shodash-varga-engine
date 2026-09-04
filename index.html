@@ -925,7 +925,7 @@
             <div style="display:flex; gap:6px; align-items: center;">
                 <input type="text" id="mapSearchQuery" placeholder="e.g. Kyathsandra" style="width: 200px;" onkeydown="if(event.key === 'Enter') searchOnlineMap()">
                 <button onclick="searchOnlineMap()" style="background: var(--grid-line); color: #000; padding: 6px 12px; margin: 0; font-weight: bold; cursor: pointer; border-radius: 4px; white-space: nowrap;">Search</button>
-                <select id="mapSearchResults" style="display:none; width: 300px; margin: 0;" onchange="applyMapSelection()"></select>
+                <select id="mapSearchResults" style="display:none; flex: 1; min-width: 300px; max-width: 700px; margin: 0;" onchange="applyMapSelection()"></select>
             </div>
         </div>
     </div>
@@ -1358,9 +1358,341 @@ document.getElementById("toolEndDate").addEventListener("change", calcToolDateDi
 
 
 
+
+
+
+
+
+<!-- Cuspal Table Starts here -->
+
+
+
+<div class="division-title" onclick="toggleCuspalTables()">
+    Cuspal & Planetary Tables &#9660;
+</div>
+
+<div id="cuspalTablesWrapper" class="shoda-wrapper" style="display:none; padding-bottom: 40px;">
+    
+    <div style="text-align:center; margin-bottom:14px;">
+        <label style="color:var(--grid-line); font-weight:bold; font-size:16px; margin-right:10px;">
+            SELECT DIVISIONAL CHART:
+        </label>
+        <select id="cuspalVargaSelect" onchange="renderCuspalTables()" style="background:#000;color:#fff;border:1px solid var(--grid-line); padding:6px 10px;font-size:16px;font-weight:bold;cursor:pointer;">
+        </select>
+    </div>
+
+    <div class="shoda-title">CUSPAL INTERLINK TABLE</div>
+    <div style="display:flex; justify-content:center; overflow-x:auto; margin-bottom: 40px; width: 100%;">
+        <table id="cuspalTableMain" class="shoda-table" style="margin-bottom:0; width:100%;"></table>
+    </div>
+
+    <div class="shoda-title">PLANETARY INTERLINK TABLE</div>
+    <div style="display:flex; justify-content:center; overflow-x:auto; margin-bottom: 40px; width: 100%;">
+        <table id="planetTableMain" class="shoda-table" style="margin-bottom:0; width:100%;"></table>
+    </div>
+
+</div>
+
+<script>
+function toggleCuspalTables() {
+    const box = document.getElementById("cuspalTablesWrapper");
+    if(!box) return;
+    const isOpening = (box.style.display === "none");
+    box.style.display = isOpening ? "block" : "none";
+    
+    if (isOpening) {
+        initCuspalDropdown();
+        renderCuspalTables();
+    }
+}
+
+function initCuspalDropdown() {
+    const sel = document.getElementById("cuspalVargaSelect");
+    if (sel && sel.options.length === 0) {
+        // Leaving your original array order exactly as you set it
+        const vKeys = [1, 10, 9, 7, 2, 4, 8, 60, 11, 30, 21, 16, 6, 12, 3, 24, 27, 20, 40, 45, 5];
+        vKeys.forEach(v => {
+            const op = document.createElement("option");
+            op.value = v; op.textContent = "D" + v;
+            sel.appendChild(op);
+        });
+        sel.value = 1; 
+        
+        // Commenting this out to stop the double-jump bug!
+        /*
+        if (typeof attachInfiniteScroll === "function") {
+            attachInfiniteScroll('cuspalVargaSelect', renderCuspalTables);
+        }
+        */
+    }
+}
+
+function renderCuspalTables() {
+    const v = parseInt(document.getElementById("cuspalVargaSelect")?.value || "1");
+    const cTable = document.getElementById("cuspalTableMain");
+    const pTable = document.getElementById("planetTableMain");
+    
+    if (!cTable || !pTable) return;
+    
+    if (!raw) {
+        cTable.innerHTML = "<tr><td style='color:#ff4444; padding:20px; text-align:center;'>Please load Natal Profile data first...</td></tr>";
+        pTable.innerHTML = "";
+        return;
+    }
+
+    const signNames = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
+    const signLords = ["Mangala", "Venus", "Budha", "Chandra", "Surya", "Budha", "Venus", "Mangala", "Jupiter", "Saturn", "Saturn", "Jupiter"];
+    const nakNames = ["Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira", "Ardra", "Punarvasu", "Pushya", "Ashlesha", "Makha", "Purva Phalguni", "Uttara Phalguni", "Hasta", "Chitra", "Swati", "Vishakha", "Anuradha", "Jyeshtha", "Moola", "Purva Ashadha", "Uttara Ashadha", "Shravana", "Dhanishta", "Shatabhisha", "Purva Bhadrapada", "Uttara Bhadrapada", "Revati"];
+    const NADI_NAMES = { Sy:"Surya", Ch:"Chandra", Ma:"Mangala", Bu:"Budha", Ju:"Jupiter", Ve:"Venus", Sa:"Saturn", Ra:"Rahu", Ke:"Ketu" };
+    const pList = ["Sy", "Ch", "Ma", "Ra", "Ju", "Sa", "Bu", "Ke", "Ve"];
+
+    function formatDMS(deg) {
+        let d = Math.floor(deg);
+        let rem = (deg - d) * 60;
+        let m = Math.floor(rem);
+        let s = Math.round((rem - m) * 60);
+        if(s === 60) { s = 0; m++; }
+        if(m === 60) { m = 0; d++; }
+        return `${d}&deg; ${m}' ${s}"`;
+    }
+
+    function getNakshatraPada(deg) {
+        let nakSize = 360 / 27; // 13.333333 degrees
+        let padaSize = nakSize / 4; // 3.333333 degrees
+        let nakIndex = Math.floor(deg / nakSize);
+        let pada = Math.floor((deg % nakSize) / padaSize) + 1;
+        return nakNames[nakIndex] + " - " + pada;
+    }
+
+    function getSignDetails(deg) {
+        let signIdx = Math.floor(deg / 30);
+        return { sign: signNames[signIdx], lord: signLords[signIdx] };
+    }
+
+    // --- 1. BUILD CUSPAL TABLE DATA ---
+    let cusps = {};
+    if (v === 1 && typeof currentCusps !== "undefined" && currentCusps && Object.keys(currentCusps).length > 0) {
+        cusps = currentCusps;
+    } else {
+        let lagnaRaw = 0;
+        if (typeof raw !== "undefined" && raw) {
+            const aya = document.getElementById('aya')?.value || 'Lahiri';
+            if (raw.ayanamshas && raw.ayanamshas[aya] && raw.ayanamshas[aya].lagna !== undefined) {
+                lagnaRaw = parseFloat(raw.ayanamshas[aya].lagna);
+            } else if (raw.lagna !== undefined) {
+                lagnaRaw = parseFloat(raw.lagna);
+            }
+        }
+        let isShiftActive = document.getElementById("shiftedLagnaToggle")?.checked;
+        if (isShiftActive && typeof originalDateTime !== "undefined" && currentDateTime) {
+            let diffMinutes = (currentDateTime - originalDateTime) / 60000;
+            lagnaRaw = (lagnaRaw + (diffMinutes * 0.25)) % 360;
+            if (lagnaRaw < 0) lagnaRaw += 360;
+        }
+        
+        // Varga Ascendant Projection
+        function getCuspVargaLong(d, vNum) {
+            if (vNum === 1) return d;
+            if (typeof getVSign === "function") {
+                const vSign = getVSign(d, vNum);
+                const vDeg = (d * vNum) % 30;
+                return (vSign * 30) + vDeg;
+            }
+            return d;
+        }
+        
+        let vargaBaseDegree = getCuspVargaLong(lagnaRaw, v);
+        for (let c = 1; c <= 12; c++) {
+            cusps[c] = (vargaBaseDegree + (c - 1) * 30) % 360;
+        }
+    }
+
+    let cHtml = `<tr>
+        <th style="color:#0bf4e6;">Bhava</th>
+        <th style="color:#0bf4e6;">Degree</th>
+        <th style="color:#0bf4e6;">Zodiac Sign</th>
+        <th style="color:#0bf4e6;">Nakshatra</th>
+        <th style="color:#0bf4e6;">Sign Lord</th>
+        <th style="color:#0bf4e6;">Star Lord</th>
+        <th style="color:#0bf4e6;">Sub Lord</th>
+        <th style="color:#0bf4e6;">Sub-Sub Lord</th>
+    </tr>`;
+
+    for (let i = 1; i <= 12; i++) {
+        let cDeg = cusps[i];
+        if(cDeg === undefined) continue;
+        let sd = getSignDetails(cDeg);
+        let nak = getNakshatraPada(cDeg);
+        let kp = typeof getKpLordsNadi === "function" ? getKpLordsNadi(cDeg) : {star:"-", sub:"-", subSub:"-"};
+        
+        cHtml += `<tr>
+            <td style="font-weight:bold;">${i}</td>
+            <td>${formatDMS(cDeg % 30)}</td>
+            <td>${sd.sign}</td>
+            <td>${nak}</td>
+            <td>${sd.lord}</td>
+            <td>${NADI_NAMES[kp.star] || kp.star}</td>
+            <td>${NADI_NAMES[kp.sub] || kp.sub}</td>
+            <td>${NADI_NAMES[kp.subSub] || kp.subSub}</td>
+        </tr>`;
+    }
+    cTable.innerHTML = cHtml;
+
+    // --- 2. BUILD PLANET TABLE DATA ---
+    let pHtml = `<tr>
+        <th style="color:#facc15;">Planet</th>
+        <th style="color:#facc15;">Degree</th>
+        <th style="color:#facc15;">Zodiac Sign</th>
+        <th style="color:#facc15;">Nakshatra</th>
+        <th style="color:#facc15;">Sign Lord</th>
+        <th style="color:#facc15;">Star Lord</th>
+        <th style="color:#facc15;">Sub Lord</th>
+        <th style="color:#facc15;">Sub-Sub Lord</th>
+    </tr>`;
+
+    pList.forEach(p => {
+        let pName = NADI_NAMES[p] || p;
+        let globalName = p === "Sy" ? "Surya" : (p === "Ch" ? "Chandra" : (p === "Ma" ? "Mangala" : (p === "Bu" ? "Budha" : (p === "Ju" ? "Jupiter" : (p === "Ve" ? "Venus" : (p === "Sa" ? "Saturn" : (p === "Ra" ? "Rahu" : "Ketu")))))));
+        
+        let rawDeg = -1;
+        let isTrueNode = document.getElementById("useTrueNode")?.checked;
+        
+        // 🔥 BULLETPROOF NODE FETCH: Bypass caching bugs to ensure True Node updates live
+        if (isTrueNode && (globalName === "Rahu" || globalName === "Ketu")) {
+            let trueName = globalName + "_true";
+            const aya = document.getElementById('aya')?.value || 'Lahiri';
+            if (raw && raw.ayanamshas && raw.ayanamshas[aya] && raw.ayanamshas[aya].planets && raw.ayanamshas[aya].planets[trueName] !== undefined) {
+                rawDeg = parseFloat(raw.ayanamshas[aya].planets[trueName]);
+            } else if (raw && raw.planets && raw.planets[trueName] !== undefined) {
+                rawDeg = parseFloat(raw.planets[trueName]);
+            }
+            // Apply live time progression to nodes directly
+            if (rawDeg !== -1 && typeof originalDateTime !== "undefined" && typeof currentDateTime !== "undefined" && originalDateTime && currentDateTime) {
+                let diffDays = (currentDateTime - originalDateTime) / 86400000;
+                rawDeg += (-0.05295 * diffDays);
+                while(rawDeg < 0) rawDeg += 360;
+                while(rawDeg >= 360) rawDeg -= 360;
+            }
+        } 
+        
+        // Standard fetch for everything else (or Mean Node)
+        if (rawDeg === -1 && window._shiftedPlanetsGlobal && window._shiftedPlanetsGlobal[globalName] !== undefined) {
+            rawDeg = window._shiftedPlanetsGlobal[globalName];
+        }
+
+        let pDeg = rawDeg;
+        if (rawDeg !== -1) {
+            // Apply strict math projection for Divisional charts
+            if (v === 1) {
+                pDeg = rawDeg;
+            } else if (v === 30) {
+                const sign = Math.floor(rawDeg / 30);
+                const degInSign = rawDeg % 30;
+                const isOdd = (sign % 2 === 0);
+                let start, length, targetSign;
+                if (isOdd) {
+                    if (degInSign < 5) { start = 0; length = 5; targetSign = 0; }
+                    else if (degInSign < 10) { start = 5; length = 5; targetSign = 10; }
+                    else if (degInSign < 18) { start = 10; length = 8; targetSign = 8; }
+                    else if (degInSign < 25) { start = 18; length = 7; targetSign = 2; }
+                    else { start = 25; length = 5; targetSign = 6; }
+                } else {
+                    if (degInSign < 5) { start = 0; length = 5; targetSign = 1; }
+                    else if (degInSign < 12) { start = 5; length = 7; targetSign = 5; }
+                    else if (degInSign < 20) { start = 12; length = 8; targetSign = 11; }
+                    else if (degInSign < 25) { start = 20; length = 5; targetSign = 9; }
+                    else { start = 25; length = 5; targetSign = 7; }
+                }
+                pDeg = (targetSign * 30) + ((degInSign - start) / length) * 30;
+            } else if (v === 5) {
+                const sign = Math.floor(rawDeg / 30);
+                const degInSign = rawDeg % 30;
+                const part = Math.floor(degInSign / 6);
+                const isOdd = (sign % 2 === 0);
+                const oddCycle = [0, 10, 8, 2, 6];
+                const evenCycle = [1, 5, 11, 9, 7];
+                const targetSign = isOdd ? oddCycle[part] : evenCycle[part];
+                pDeg = (targetSign * 30) + ((degInSign % 6) / 6) * 30;
+            } else if (typeof getVSign === "function") {
+                const vSign = getVSign(rawDeg, v);
+                const vDeg = (rawDeg * v) % 30;
+                pDeg = (vSign * 30) + vDeg;
+            }
+        }
+
+        if(pDeg !== -1) {
+            let sd = getSignDetails(pDeg);
+            let nak = getNakshatraPada(pDeg);
+            let kp = typeof getKpLordsNadi === "function" ? getKpLordsNadi(pDeg) : {star:"-", sub:"-", subSub:"-"};
+            
+            pHtml += `<tr>
+                <td style="font-weight:bold;">${pName}</td>
+                <td>${formatDMS(pDeg % 30)}</td>
+                <td>${sd.sign}</td>
+                <td>${nak}</td>
+                <td>${sd.lord}</td>
+                <td>${NADI_NAMES[kp.star] || kp.star}</td>
+                <td>${NADI_NAMES[kp.sub] || kp.sub}</td>
+                <td>${NADI_NAMES[kp.subSub] || kp.subSub}</td>
+            </tr>`;
+        }
+    });
+    pTable.innerHTML = pHtml;
+    
+    // Attach Memory Matrix Interactions (Crosshair Hover & Select)
+    if (typeof attachMemoryEvents === "function") {
+        setTimeout(() => {
+            attachMemoryEvents(cTable);
+            attachMemoryEvents(pTable);
+        }, 50);
+    }
+}
+
+// Automatically update tables on time/location change if open
+(function(){
+    const originalCalcCuspal = window.calc;
+    window.calc = function(){
+        if (typeof originalCalcCuspal === "function") originalCalcCuspal();
+        try {
+            const box = document.getElementById("cuspalTablesWrapper");
+            if (box && box.style.display === "block" && typeof renderCuspalTables === "function") {
+                renderCuspalTables();
+            }
+        } catch(e) {}
+    };
+})();
+</script>
+<!-- Cuspal Table ENds here -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <div class="division-title" onclick="toggleSignVsKp()">
     Divisional Chart : Sign Vs KP &#9660;
 </div>
+
+
+
+
+
 
 <div id="signVsKpWrapper" class="shoda-wrapper" style="display:none; padding-bottom: 40px;">
     <div id="signVsKpContainer" style="display: flex; flex-direction: column; gap: 40px; width: 100%; box-sizing: border-box;"></div>
@@ -5083,26 +5415,36 @@ pNames.forEach(p=>{
 		
    });
 
-buildShodaTables();
-buildLordsTable();
-buildLordshipDeciderTable();
-renderVargaAshtakavarga();
-renderVargaAshtakavarga();
-renderVedicAspectsTab(); // <-- Add this here so aspects auto-update when time changes
+		buildShodaTables();
+		buildLordsTable();
+		buildLordshipDeciderTable();
+		renderVargaAshtakavarga();
+		renderVedicAspectsTab(); // <-- Add this here so aspects auto-update when time changes
 
-// Build Vimshottari
-buildFullDasha("vimChandra", moonShifted);
-buildFullDasha("vimLagna", lagnaShifted);
-// --- force stable highlight order ---
-highlightTodayVim();
-highlightRunningMahaInTable();
+		// 🔥 FIX: Instantly refresh Cuspal & Planetary Tables dynamically
+		try {
+			const cuspalBox = document.getElementById("cuspalTablesWrapper");
+			if (cuspalBox && cuspalBox.style.display === "block" && typeof renderCuspalTables === "function") {
+				renderCuspalTables();
+			}
+		} catch(e) {}
 
+		// 🔥 FIX: Instantly refresh Sign Vs KP Charts dynamically
+		try {
+			const signKpBox = document.getElementById("signVsKpWrapper");
+			if (signKpBox && signKpBox.style.display === "block" && typeof renderSignVsKp === "function") {
+				renderSignVsKp();
+			}
+		} catch(e) {}
 
-
-
+		// Build Vimshottari
+		buildFullDasha("vimChandra", moonShifted);
+		buildFullDasha("vimLagna", lagnaShifted);
+		// --- force stable highlight order ---
+		highlightTodayVim();
+		highlightRunningMahaInTable();
 
 }
-
 
 
 
@@ -7076,10 +7418,10 @@ async function searchOnlineMap() {
 
             data.forEach((place, index) => {
                 const opt = document.createElement("option");
-                let displayName = place.display_name;
-                if (displayName.length > 60) displayName = displayName.substring(0, 57) + "...";
+                const displayName = place.display_name;
                 
                 opt.text = displayName;
+                opt.title = displayName;
                 opt.value = index; 
                 resultsDropdown.appendChild(opt);
             });
@@ -13374,6 +13716,7 @@ function getDbaPlanetData(targetPlanet, vNum) {
         const isMode3 = (displayMode === "3");
         const showPlaced = document.getElementById("dbaShowPlacedToggle")?.checked;
         const isSignMode = document.getElementById("modeSign2Sign")?.checked;
+        const modeVedic = document.getElementById("modeVedic")?.checked;
 
         const pivotStr = document.getElementById("dbaPivotSelect")?.value || "1";
         const isPlanetPivot = ["Sy", "Ch", "Ma", "Ra", "Ju", "Sa", "Bu", "Ke", "Ve"].includes(pivotStr);
@@ -13443,6 +13786,9 @@ function getDbaPlanetData(targetPlanet, vNum) {
                 if (isKpActive) {
                     let relDeg = (tpDeg - relativePivotDeg + 360) % 360;
                     t_placedHouse = Math.floor(relDeg / 30) + 1;
+                } else if (modeVedic) {
+                    let relDeg = (tpDeg - (relativePivotDeg - 15) + 360) % 360;
+                    t_placedHouse = Math.floor(relDeg / 30) + 1;
                 } else {
                     let pSign = Math.floor(tpDeg / 30);
                     let baseSign = Math.floor(relativePivotDeg / 30);
@@ -13451,6 +13797,9 @@ function getDbaPlanetData(targetPlanet, vNum) {
             } else {
                 if (isKpActive && typeof getPlacidusHouse === "function" && localCusps) {
                     t_placedHouse = getPlacidusHouse(tpDeg, localCusps) || "-";
+                } else if (modeVedic) {
+                    let relDeg = (tpDeg - (relativePivotDeg - 15) + 360) % 360;
+                    t_placedHouse = Math.floor(relDeg / 30) + 1;
                 } else if (isSignMode) {
                     let pSign = Math.floor(tpDeg / 30);
                     let baseSign = Math.floor(relativePivotDeg / 30);
@@ -13490,12 +13839,16 @@ function getDbaPlanetData(targetPlanet, vNum) {
                         if (vNum !== 1 || isPlanetPivot) {
                             if (isKpActive) {
                                 dispPlaced = Math.floor(((dispDeg - relativePivotDeg + 360) % 360) / 30) + 1;
+                            } else if (modeVedic) {
+                                dispPlaced = Math.floor(((dispDeg - (relativePivotDeg - 15) + 360) % 360) / 30) + 1;
                             } else {
                                 dispPlaced = ((Math.floor(dispDeg / 30) - Math.floor(relativePivotDeg / 30) + 12) % 12) + 1;
                             }
                         } else {
                             if (isKpActive && typeof getPlacidusHouse === "function" && localCusps) {
                                 dispPlaced = getPlacidusHouse(dispDeg, localCusps) || "-";
+                            } else if (modeVedic) {
+                                dispPlaced = Math.floor(((dispDeg - (relativePivotDeg - 15) + 360) % 360) / 30) + 1;
                             } else if (isSignMode) {
                                 dispPlaced = ((Math.floor(dispDeg / 30) - Math.floor(relativePivotDeg / 30) + 12) % 12) + 1;
                             } else {
@@ -14534,8 +14887,11 @@ function renderDbaMixer() {
                         let relDeg = (absDeg - ascAbsDegLocal + 360) % 360;
                         isolatedChart[(baseAsc + Math.floor(relDeg / 30)) % 12].push({ n: p, d: relDeg % 30, isAsc: false, r: isRetro, pureSign: purePntSign });
                     }
-                } else if (isKpActive || modeVedic) {
+                } else if (isKpActive) {
                     let relDeg = (absDeg - ascAbsDegLocal + 360) % 360;
+                    isolatedChart[(baseAsc + Math.floor(relDeg / 30)) % 12].push({ n: p, d: relDeg % 30, isAsc: false, r: isRetro, pureSign: purePntSign });
+                } else if (modeVedic) {
+                    let relDeg = (absDeg - (ascAbsDegLocal - 15) + 360) % 360;
                     isolatedChart[(baseAsc + Math.floor(relDeg / 30)) % 12].push({ n: p, d: relDeg % 30, isAsc: false, r: isRetro, pureSign: purePntSign });
                 } else {
                     isolatedChart[Math.floor(absDeg / 30)].push({ n: p, d: absDeg % 30, isAsc: false, r: isRetro, pureSign: purePntSign });
